@@ -11,6 +11,12 @@ export default class MockConnection implements IModuleConnection {
   constructor(terminal: TerminalEntryStore) {
     this.terminal = terminal;
     this.log('Mock Interface wurde erstellt');
+    this.onData((str) => {
+      this.terminal.add({
+        isSender: false,
+        message: `> ${str}`,
+      });
+    })
   }
   private log(message: string): void {
     this.terminal.add({
@@ -63,6 +69,10 @@ export default class MockConnection implements IModuleConnection {
   }
 
   async send(data: string): Promise<void> {
+    this.terminal.add({
+      isSender: true,
+      message: data
+    });
     this.dataListeners.forEach(listener => listener("AT+OK"));
   }
 

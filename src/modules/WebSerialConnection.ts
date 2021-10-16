@@ -23,7 +23,7 @@ export default class WebSerialConnection implements IModuleConnection {
   private log(message: string): void {
     this.terminal.add({
       isSender: false,
-      message: `| WS LOG: ${message}`,
+      message: `| WebSerial: ${message}`,
     });
   }
 
@@ -32,7 +32,7 @@ export default class WebSerialConnection implements IModuleConnection {
 
     this.terminal.add({
       isSender: false,
-      message: str,
+      message: `> ${str}`,
     });
     this.dataListeners.forEach(listener => listener(str));
   }
@@ -91,6 +91,11 @@ export default class WebSerialConnection implements IModuleConnection {
   async disconnect(): Promise<boolean> {
     this.log('Trenne Verbindung...');
 
+    if (this.port) {
+      await this.reader?.cancel();
+      await this.writer?.abort();
+      await this.port.close();
+    }
     this.port = undefined;
 
     this.log('Verbindung getrennt');

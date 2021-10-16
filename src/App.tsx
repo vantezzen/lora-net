@@ -21,16 +21,18 @@ function App() {
     <div className="min-w-screen h-screen grid grid-rows-2 dark text-gray-100" style={{ backgroundColor: '#2a2a2a' }}>
       
       {/* Top Row */}
-      <div className="p-5 pb-0 grid grid-cols-2 gap-5">
+      <div className="p-5 pb-0 grid grid-cols-2 lg:grid-cols-3 gap-5">
         <ConnectionInfo
           connection={connection}
           setConnection={setConnection}
           forceRender={forceRender}
           terminalStore={terminalStore}
         />
-        <Network
-          connection={connection}
-        />
+        <div className="lg:col-span-2">
+          <Network
+            connection={connection}
+          />
+        </div>
       </div>
 
       {/* Bottom Row */}
