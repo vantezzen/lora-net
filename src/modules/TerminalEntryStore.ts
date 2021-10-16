@@ -1,5 +1,9 @@
 import { TerminalEntry, TerminalOutput } from "./ITerminal";
 
+/**
+ * Terminal entry store.
+ * Stores all terminal entries across all parts of the app.
+ */
 export default class TerminalEntryStore {
   private entries: TerminalOutput = [];
   private updateListeners: Function[] = [];
@@ -25,7 +29,8 @@ export default class TerminalEntryStore {
   }
 
   /**
-   * Get all saved entries
+   * Get all saved entries.
+   * The first entry will be the oldest, the last entry will be the newest.
    * 
    * @returns Entry array
    */

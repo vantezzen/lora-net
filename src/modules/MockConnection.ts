@@ -1,6 +1,9 @@
 import IModuleConnection, { ConnectionInfo } from "./IModuleConnection";
 import TerminalEntryStore from "./TerminalEntryStore";
 
+/**
+ * Mock connection for testing.
+ */
 export default class MockConnection implements IModuleConnection {
   private isConnected = false;
   private connectionStart = new Date();

@@ -9,10 +9,12 @@ import Terminal from './sections/Terminal';
 const terminalEntryStore = new TerminalEntryStore();
 
 function App() {
+  // Global classes
   const [ connection, setConnection ] = useState<IModuleConnection | null>(null);
   const [ terminalStore ] = useState(terminalEntryStore);
-  const [ , setForceRender ] = useState({});
 
+  // Allow forcing the complete app to rerender to reflect large state changes (e.g. connection change)
+  const [ , setForceRender ] = useState({});
   const forceRender = () => {
     setForceRender({});
   }

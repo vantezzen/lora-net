@@ -16,6 +16,7 @@ export default class Network extends React.Component<{
         // @ts-ignore
         title={(<div className="flex items-center gap-3"> <Icons.Share2 size={15} /> Netzwerk </div>)}
       >
+        {/* TODO: Implement Network Monitor once Network functionality is implemented */}
         {(connection && connection.getIsConnected()) ? (
           <div className="w-full h-full flex items-center justify-center">
             <div className="flex items-center flex-col text-gray-400">
@@ -28,6 +29,7 @@ export default class Network extends React.Component<{
         ) : (
           <NotConnected />
         )}
+
       </Card>
     );
   }

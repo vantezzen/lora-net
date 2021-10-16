@@ -31,6 +31,7 @@ export default class ConnectionInfo extends React.Component<ConnectionInfoProps>
     this.timeAgo = new TimeAgo('de-DE')
   }
 
+  // Component is forcing an update every second to keep the "Time since connection" clock up-to-date
   componentDidMount() {
     this.updateLoop = setInterval(() => {
       this.forceUpdate();
@@ -42,6 +43,11 @@ export default class ConnectionInfo extends React.Component<ConnectionInfoProps>
     }
   }
 
+  /**
+   * Setup a connection using any Module Connection Class
+   * 
+   * @param Connection IModuleConnection Class to use
+   */
   setupConnection(Connection: new (terminalStore: TerminalEntryStore) => IModuleConnection) {
     const connect = new Connection(this.props.terminalStore);
     this.props.setConnection(connect);
@@ -72,6 +78,8 @@ export default class ConnectionInfo extends React.Component<ConnectionInfoProps>
     if (connection) {
       const connectionInfo = connection.getConnectionInfo();
       if (connectionInfo === false) {
+        // Connection Class has been added but no connection has been established yet
+        // E.g clicked on "Connect" button but didn't choose a device yet
         return (
           <div>
             <div className="mb-5">
@@ -85,6 +93,7 @@ export default class ConnectionInfo extends React.Component<ConnectionInfoProps>
 
       const Icon = Icons[connectionInfo.icon];
 
+      // Connection established and active
       return (
         <div>
           <div className="mb-5">
@@ -145,6 +154,7 @@ export default class ConnectionInfo extends React.Component<ConnectionInfoProps>
       )
     }
 
+    // No active connection
     return (
       <div>
         <div className="mb-5">

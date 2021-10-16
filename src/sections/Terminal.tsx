@@ -26,6 +26,9 @@ export default class Terminal extends React.Component<TerminalProps, TerminalSta
     this.doUpdate = this.doUpdate.bind(this);
   }
 
+  /**
+   * Scroll the output element to the bottom to show the latest messages
+   */
   scrollOutput() {
     setTimeout(() => {
       if (this.outputElement && this.outputElement.current) {
@@ -35,6 +38,10 @@ export default class Terminal extends React.Component<TerminalProps, TerminalSta
     }, 0);
   }
 
+  /**
+   * Wrapped update method for use in the terminal store.
+   * This is needed to bind `this` to the function as it will fail otherwise.
+   */
   doUpdate() {
     this.forceUpdate();
   }
@@ -57,6 +64,7 @@ export default class Terminal extends React.Component<TerminalProps, TerminalSta
       >
         <div className="flex flex-col overflow-scroll h-full">
             
+          {/* Output */}
           <div className="overflow-auto font-mono text-xs flex-grow pb-1" ref={this.outputElement}>
             {
               this.props.terminalStore.getAll().map((entry, i) => (
@@ -67,6 +75,7 @@ export default class Terminal extends React.Component<TerminalProps, TerminalSta
             }
           </div>
 
+          {/* Input */}
           <div className="border-t flex-shrink-0 py-1" style={{ borderColor: '#2a2a2a' }}>
             <input 
               type="text"
@@ -83,7 +92,10 @@ export default class Terminal extends React.Component<TerminalProps, TerminalSta
               "
               placeholder="Kommandos hier eingeben..."
               value={this.state.inputVal}
+              
               onChange={(evt) => {this.setState({ inputVal: evt.target.value })}}
+
+              // Pressing "Enter" without Shift should send the message
               onKeyDown={(evt) => {
                 if (evt.code === "Enter" && !evt.shiftKey && this.state.inputVal.length > 0) {
                   evt.preventDefault();

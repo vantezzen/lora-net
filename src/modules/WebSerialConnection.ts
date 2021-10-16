@@ -1,15 +1,18 @@
 import IModuleConnection, { ConnectionInfo } from "./IModuleConnection";
 import TerminalEntryStore from "./TerminalEntryStore";
 
+/**
+ * Connector for connecting to devices using the WebSerial API
+ */
 export default class WebSerialConnection implements IModuleConnection {
   private connectionStart = new Date();
   private terminal: TerminalEntryStore;
+  private dataListeners: ((data: string) => any)[] = [];
 
+  // WebSerial specific
   private port?: SerialPort;
   private writer?: WritableStreamDefaultWriter<Uint8Array>;
   private reader?: ReadableStreamDefaultReader<Uint8Array>;
-
-  private dataListeners: ((data: string) => any)[] = [];
 
   constructor(terminal: TerminalEntryStore) {
     this.terminal = terminal;
@@ -27,6 +30,11 @@ export default class WebSerialConnection implements IModuleConnection {
     });
   }
 
+  /**
+   * Process data received from the device and notify all registered callbacks
+   * 
+   * @param data Data received from the device
+   */
   private processData(data: Uint8Array): void {
     const str = String.fromCharCode.apply(null, Array.from(data));
 
@@ -36,6 +44,10 @@ export default class WebSerialConnection implements IModuleConnection {
     });
     this.dataListeners.forEach(listener => listener(str));
   }
+  /**
+   * Start reading data from the device
+   * This function will automatically loop until the device is disconnected
+   */
   private startReader(): void {
     console.log("WebSerial waiting for next data");
     this.reader?.read().then(({ value, done }) => {
@@ -92,6 +104,7 @@ export default class WebSerialConnection implements IModuleConnection {
     this.log('Trenne Verbindung...');
 
     if (this.port) {
+      // Flush buffers before disconnect, otherwise the WebSerial API might throw errors
       await this.reader?.cancel();
       await this.writer?.abort();
       await this.port.close();
