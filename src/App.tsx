@@ -1,24 +1,37 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { useState } from 'react';
 import './App.css';
+import IModuleConnection from './modules/IModuleConnection';
+import ConnectionInfo from './sections/ConnectionInfo';
+import Network from './sections/Network';
 
 function App() {
+  const [ connection, setConnection ] = useState<IModuleConnection | null>(null);
+  const [ , setForceRender ] = useState({});
+
+  const forceRender = () => {
+    setForceRender({});
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="min-w-screen min-h-screen grid grid-rows-2 dark text-gray-100" style={{ backgroundColor: '#2a2a2a' }}>
+      
+      {/* Top Row */}
+      <div className="p-5 grid grid-cols-2 gap-5">
+        <ConnectionInfo
+          connection={connection}
+          setConnection={setConnection}
+          forceRender={forceRender}
+        />
+        <Network
+          connection={connection}
+        />
+      </div>
+
+      {/* Bottom Row */}
+      <div className="">
+        Terminal
+      </div>
+
     </div>
   );
 }
