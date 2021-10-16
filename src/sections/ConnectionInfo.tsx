@@ -154,7 +154,7 @@ export default class ConnectionInfo extends React.Component<{
         <Button
           className="m-3"
           onClick={() => {
-            const connect = new MockConnection();
+            const connect = new MockConnection(this.props.terminalStore);
             this.props.setConnection(connect);
 
             connect.connect().then(this.props.forceRender);
