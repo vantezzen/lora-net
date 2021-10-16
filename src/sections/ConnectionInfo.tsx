@@ -5,6 +5,8 @@ import TimeAgo from 'javascript-time-ago'
 import de from 'javascript-time-ago/locale/de.json'
 import IModuleConnection from "../modules/IModuleConnection";
 import MockConnection from "../modules/MockConnection";
+import BluetoothConnection from "../modules/BluetoothConnection";
+import TerminalEntryStore from "../modules/TerminalEntryStore";
 
 TimeAgo.addDefaultLocale(de)
 const timeAgo = new TimeAgo('de-DE')
@@ -12,7 +14,8 @@ const timeAgo = new TimeAgo('de-DE')
 export default class ConnectionInfo extends React.Component<{
   connection: IModuleConnection | null,
   setConnection: (connection: IModuleConnection | null) => any,
-  forceRender: () => any
+  forceRender: () => any,
+  terminalStore: TerminalEntryStore
 }> {
 
   state = {
@@ -133,7 +136,15 @@ export default class ConnectionInfo extends React.Component<{
 
         <Button
           onClick={() => {
-            alert("Nicht implementiert");
+            const connect = new BluetoothConnection(this.props.terminalStore);
+            this.props.setConnection(connect);
+
+            connect.connect().then((success) => {
+              if (!success) {
+                this.props.setConnection(null);
+              }
+              this.props.forceRender();
+            });
           }}
           className="m-3"
         >

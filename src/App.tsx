@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
 import './App.css';
 import IModuleConnection from './modules/IModuleConnection';
+import TerminalEntryStore from './modules/TerminalEntryStore';
 import ConnectionInfo from './sections/ConnectionInfo';
 import Network from './sections/Network';
 import Terminal from './sections/Terminal';
 
+const terminalEntryStore = new TerminalEntryStore();
+
 function App() {
   const [ connection, setConnection ] = useState<IModuleConnection | null>(null);
+  const [ terminalStore ] = useState(terminalEntryStore);
   const [ , setForceRender ] = useState({});
 
   const forceRender = () => {
@@ -22,6 +26,7 @@ function App() {
           connection={connection}
           setConnection={setConnection}
           forceRender={forceRender}
+          terminalStore={terminalStore}
         />
         <Network
           connection={connection}
@@ -32,6 +37,7 @@ function App() {
       <div className="p-5">
         <Terminal 
           connection={connection}
+          terminalStore={terminalStore}
         />
       </div>
 
