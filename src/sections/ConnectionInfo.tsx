@@ -94,6 +94,14 @@ export default class ConnectionInfo extends React.Component<{
                   seit {timeAgo.format(connectionInfo.connectionStart, 'twitter-now')}
                 </span>
               </p>
+              <p>
+                <span className="text-gray-500 mr-3">
+                  Verbindungstyp:
+                </span>
+                <span className="float-right font-bold">
+                  {connection.getConnectionType()}
+                </span>
+              </p>
             </div>
           </div>
 
@@ -127,12 +135,13 @@ export default class ConnectionInfo extends React.Component<{
           onClick={() => {
             alert("Nicht implementiert");
           }}
-          className="mb-5"
+          className="m-3"
         >
           Mit Bluetooth Gerät verbinden
         </Button>
 
         <Button
+          className="m-3"
           onClick={() => {
             const connect = new MockConnection();
             this.props.setConnection(connect);
@@ -148,7 +157,11 @@ export default class ConnectionInfo extends React.Component<{
 
   render() {
     return (
-      <Card className="w-full h-full" title="Verbindung">
+      <Card 
+        className="w-full h-full"
+        // @ts-ignore
+        title={(<div className="flex items-center gap-3"> <Icons.Link size={15} /> Verbindung </div>)}
+      >
         {this.renderContent()}
       </Card>
     );

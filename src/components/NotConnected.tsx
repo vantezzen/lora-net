@@ -1,4 +1,3 @@
-import { Typography } from "@supabase/ui";
 import React from "react"
 import { Link } from "react-feather";
 

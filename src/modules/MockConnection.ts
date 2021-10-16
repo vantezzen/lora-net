@@ -4,6 +4,10 @@ export default class MockConnection implements IModuleConnection {
   private isConnected = false;
   private connectionStart = new Date();
   
+  getConnectionType(): string {
+    return "Mock";
+  }
+
   connect(): Promise<boolean> {
     return new Promise((resolve) => {
       setTimeout(() => {

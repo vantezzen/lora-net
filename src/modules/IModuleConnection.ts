@@ -16,6 +16,12 @@ export type ConnectionInfo = {
  */
 export default interface IModuleConnection {
   /**
+   * Get a descriptive name for this classes connection type.
+   * e.g. "Bluetooth"
+   */
+  getConnectionType(): string;
+
+  /**
    * Connect to the Module.
    * The returned promise should resolve with "true" if the connection has been estabilshed
    * successfully or "false" otherwise

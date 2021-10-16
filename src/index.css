@@ -13,4 +13,5 @@ body {
 
 .sbui-card-content {
   height: 100%;
+  overflow: auto;
 }
