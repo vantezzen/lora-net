@@ -48,12 +48,10 @@ export default interface IModuleConnection {
 
   /**
    * Send data to the module.
-   * This will resolve with the module's response or "false" if the data
-   * could not be sent successfully
    * 
    * @param data AT Command to send
    */
-  send(data: string): Promise<string | false>;
+  send(data: string): Promise<void>;
 
   /**
    * Add a callback for when data is received

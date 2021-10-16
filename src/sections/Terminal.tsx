@@ -2,7 +2,6 @@ import React from "react";
 import { Card } from '@supabase/ui'
 import * as Icons from 'react-feather';
 import IModuleConnection from "../modules/IModuleConnection";
-import { TerminalEntry, TerminalOutput } from "../modules/ITerminal";
 import TerminalEntryStore from "../modules/TerminalEntryStore";
 
 type TerminalProps = {
@@ -34,10 +33,6 @@ export default class Terminal extends React.Component<TerminalProps, TerminalSta
         el.scrollTop = el.scrollHeight;
       }
     }, 0);
-  }
-
-  addOutput(message: TerminalEntry) {
-    this.props.terminalStore.add(message);
   }
 
   doUpdate() {
@@ -92,12 +87,7 @@ export default class Terminal extends React.Component<TerminalProps, TerminalSta
               onKeyDown={(evt) => {
                 if (evt.code === "Enter" && !evt.shiftKey && this.state.inputVal.length > 0) {
                   evt.preventDefault();
-
-                  // TODO: Push to terminal controller
-                  this.addOutput({
-                    isSender: true,
-                    message: this.state.inputVal
-                  });
+                  this.props.connection?.send(this.state.inputVal);
                   this.setState({
                     inputVal: ''
                   });

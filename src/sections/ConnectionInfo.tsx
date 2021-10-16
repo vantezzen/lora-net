@@ -5,24 +5,31 @@ import TimeAgo from 'javascript-time-ago'
 import de from 'javascript-time-ago/locale/de.json'
 import IModuleConnection from "../modules/IModuleConnection";
 import MockConnection from "../modules/MockConnection";
-import BluetoothConnection from "../modules/BluetoothConnection";
 import TerminalEntryStore from "../modules/TerminalEntryStore";
+import WebSerialConnection from "../modules/WebSerialConnection";
 
-TimeAgo.addDefaultLocale(de)
-const timeAgo = new TimeAgo('de-DE')
-
-export default class ConnectionInfo extends React.Component<{
+type ConnectionInfoProps = {
   connection: IModuleConnection | null,
   setConnection: (connection: IModuleConnection | null) => any,
   forceRender: () => any,
   terminalStore: TerminalEntryStore
-}> {
+};
+
+export default class ConnectionInfo extends React.Component<ConnectionInfoProps> {
 
   state = {
     isDisconnecting: false,
   };
 
   updateLoop: NodeJS.Timeout | false = false;
+  timeAgo: TimeAgo;
+
+  constructor(props: ConnectionInfoProps) {
+    super(props);
+
+    TimeAgo.addDefaultLocale(de)
+    this.timeAgo = new TimeAgo('de-DE')
+  }
 
   componentDidMount() {
     this.updateLoop = setInterval(() => {
@@ -33,6 +40,18 @@ export default class ConnectionInfo extends React.Component<{
     if (this.updateLoop) {
       clearInterval(this.updateLoop);
     }
+  }
+
+  setupConnection(Connection: new (terminalStore: TerminalEntryStore) => IModuleConnection) {
+    const connect = new Connection(this.props.terminalStore);
+    this.props.setConnection(connect);
+
+    connect.connect().then((success) => {
+      if (!success) {
+        this.props.setConnection(null);
+      }
+      this.props.forceRender();
+    });
   }
 
   renderContent() {
@@ -94,7 +113,7 @@ export default class ConnectionInfo extends React.Component<{
                   Verbindungszeit:
                 </span>
                 <span className="float-right font-bold">
-                  seit {timeAgo.format(connectionInfo.connectionStart, 'twitter-now')}
+                  seit {this.timeAgo.format(connectionInfo.connectionStart, 'twitter-now')}
                 </span>
               </p>
               <p>
@@ -136,28 +155,17 @@ export default class ConnectionInfo extends React.Component<{
 
         <Button
           onClick={() => {
-            const connect = new BluetoothConnection(this.props.terminalStore);
-            this.props.setConnection(connect);
-
-            connect.connect().then((success) => {
-              if (!success) {
-                this.props.setConnection(null);
-              }
-              this.props.forceRender();
-            });
+            this.setupConnection(WebSerialConnection);
           }}
           className="m-3"
         >
-          Mit Bluetooth Gerät verbinden
+          Mit WebSerial Gerät verbinden
         </Button>
 
         <Button
           className="m-3"
           onClick={() => {
-            const connect = new MockConnection(this.props.terminalStore);
-            this.props.setConnection(connect);
-
-            connect.connect().then(this.props.forceRender);
+            this.setupConnection(MockConnection);
           }}
         >
           Mit Mock verbinden

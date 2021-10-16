@@ -6,6 +6,8 @@ export default class MockConnection implements IModuleConnection {
   private connectionStart = new Date();
   private terminal: TerminalEntryStore;
 
+  private dataListeners: Function[] = [];
+
   constructor(terminal: TerminalEntryStore) {
     this.terminal = terminal;
     this.log('Mock Interface wurde erstellt');
@@ -60,13 +62,12 @@ export default class MockConnection implements IModuleConnection {
     return this.isConnected;
   }
 
-  send(data: string): Promise<string | false> {
-    return Promise.resolve("AT+OK");
+  async send(data: string): Promise<void> {
+    this.dataListeners.forEach(listener => listener("AT+OK"));
   }
 
   onData(callback: (data: string) => any): void {
-    this.log('INFO: Data Callback nicht unterstützt');
-    // TODO
+    this.dataListeners.push(callback);
   }
   
 }

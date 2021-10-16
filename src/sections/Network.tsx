@@ -17,8 +17,13 @@ export default class Network extends React.Component<{
         title={(<div className="flex items-center gap-3"> <Icons.Share2 size={15} /> Netzwerk </div>)}
       >
         {(connection && connection.getIsConnected()) ? (
-          <div>
-            Noch nicht eingerichtet
+          <div className="w-full h-full flex items-center justify-center">
+            <div className="flex items-center flex-col text-gray-400">
+              <Icons.Hexagon size={30} />
+              <h3 className="text-lg mt-3">
+                Noch nicht eingerichtet
+              </h3>
+            </div>
           </div>
         ) : (
           <NotConnected />
