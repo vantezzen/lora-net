@@ -19,7 +19,7 @@
     "web-vitals": "^1.0.1"
   },
   "scripts": {
-    "predeploy": "yarn build",
+    "predeploy": "yarn build && echo \"lora.vantezzen.io\" > build/CNAME",
     "deploy": "gh-pages -d build",
     "start": "craco start",
     "build": "craco build",
