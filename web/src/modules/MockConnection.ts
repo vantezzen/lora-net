@@ -83,4 +83,7 @@ export default class MockConnection implements IModuleConnection {
     this.dataListeners.push(callback);
   }
   
+  removeDataHandler(callback: (data: string) => any): void {
+    this.dataListeners = this.dataListeners.filter(listener => listener !== callback);
+  }
 }

@@ -59,4 +59,11 @@ export default interface IModuleConnection {
    * @param callback Callback
    */
   onData(callback: (data: string) => any): void;
+
+  /**
+   * Remove a message listener from the connection
+   * 
+   * @param callback Callback to remove
+   */
+  removeDataHandler(callback: (data: string) => any): void;
 }

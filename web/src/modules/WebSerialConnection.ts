@@ -14,6 +14,9 @@ export default class WebSerialConnection implements IModuleConnection {
   private writer?: WritableStreamDefaultWriter<Uint8Array>;
   private reader?: ReadableStreamDefaultReader<Uint8Array>;
 
+  // Config
+  private COMMAND_END = "\r\n";
+
   constructor(terminal: TerminalEntryStore) {
     this.terminal = terminal;
     this.log('Neue WebSerial Verbindung erstellt');
@@ -78,7 +81,7 @@ export default class WebSerialConnection implements IModuleConnection {
     }
 
     // Open connection
-    await this.port.open({ baudRate: 9600 });
+    await this.port.open({ baudRate: 115200 });
 
     // Write Support
     if (!this.port.writable) {
@@ -128,7 +131,8 @@ export default class WebSerialConnection implements IModuleConnection {
   }
 
   async send(data: string): Promise<void> {
-    await this.writer?.write(new TextEncoder().encode(`${data}\n`));
+    let command = `AT+SEND=${data.length}${this.COMMAND_END}${data}`;
+    await this.writer?.write(new TextEncoder().encode(command));
     this.terminal.add({
       isSender: true,
       message: data
@@ -138,5 +142,8 @@ export default class WebSerialConnection implements IModuleConnection {
   onData(callback: (data: string) => any): void {
     this.dataListeners.push(callback);
   }
-  
+
+  removeDataHandler(callback: (data: string) => any): void {
+    this.dataListeners = this.dataListeners.filter(listener => listener !== callback);
+  }
 }
