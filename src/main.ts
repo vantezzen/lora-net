@@ -4,11 +4,12 @@ import chalk from 'chalk'
 import Connection from './Connection';
 import Communication from './Communication';
 import { wait } from './utils';
+import Network from './Network';
 
 (async () => {
 
+  // 1. Choose port
   const availablePorts = glob.sync('/dev/tty.*');
-
   const { port } = await inquirer.prompt([{
     type: 'list',
     name: 'port',
@@ -16,25 +17,30 @@ import { wait } from './utils';
     choices: availablePorts
   }]);
 
+  // 2. Open connection (layer 1)
   console.log('Connecting to ' + chalk.magenta(port));
-
   const connection = new Connection(port);
-
   await connection.connect();
+  console.log(chalk.green('Connected to module'));
+
+  // 3. Setup communication (layer 2)
+  console.log('Setting up communication...');
   const communication = new Communication(connection);
   await communication.setup();
-
+  
   connection.onData((data) => {
     console.log(">", chalk.green(data));
   });
+  console.log(chalk.green('Communication established'));
 
-  await connection.send("AT");
-  await communication.waitForMessage("OK");
-  await wait(100);
-
-  await communication.sendMessage("oel");
-
-  console.log(chalk.green("Terminal - type \"exit\" to exit"));
+  // 4. Send network (layer 3)
+  console.log("Setting up network...");
+  const network = new Network(communication);
+  await network.setup();
+  console.log(chalk.green('Network setup'));
+  
+  // 5. Create terminal-like to enable direct interaction with the module
+  console.log(chalk.green("Opening Terminal - type \"exit\" to exit"));
 
   while(true) {
     const { Terminal: input } = await inquirer.prompt([{ type: 'input', name: 'Terminal' }]);
@@ -46,7 +52,7 @@ import { wait } from './utils';
 
     await connection.send(input);
     await communication.waitForMessage();
-    await wait(100);
+    await wait(connection.PAUSE_LENGTH);
   }
 
   connection.close();
