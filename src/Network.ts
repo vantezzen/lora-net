@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import Communication from "./Communication";
 import NetworkPackage from "./networkPackages/utils/NetworkPackage";
-import stringToPackage from "./networkPackages/utils/PackageParser";
+import stringToPackage from "./networkPackages/utils/utils";
 
 /**
  * Layer 3: Network
@@ -29,12 +29,10 @@ export default class Network {
    * Let the network setup
    */
   public async setup(): Promise<void> {
-    await this.communication.sendMessage("setup done");
-
     this.communication.onMessage((sender, data) => {
       try {
         const pack = stringToPackage(data);
-        this.log("Received package", pack.type.toString());
+        this.log("Received package", pack.type.toString(), pack);
         this.messageListeners.forEach(l => l(pack));
       } catch (e) {
         this.log("Could not parse message:", data);
