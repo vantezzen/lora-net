@@ -3,7 +3,6 @@ import glob from 'glob'
 import chalk from 'chalk'
 import Connection from './Connection';
 import Communication from './Communication';
-import { wait } from './utils';
 import Network from './Network';
 import Console from './Console';
 
