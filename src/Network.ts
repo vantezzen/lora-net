@@ -1,4 +1,7 @@
+import chalk from "chalk";
 import Communication from "./Communication";
+import NetworkPackage from "./networkPackages/utils/NetworkPackage";
+import stringToPackage from "./networkPackages/utils/PackageParser";
 
 /**
  * Layer 3: Network
@@ -7,9 +10,19 @@ import Communication from "./Communication";
  */
 export default class Network {
   private communication: Communication;
+  private messageListeners: ((pack: NetworkPackage) => void)[] = [];
 
   constructor(communication: Communication) {
     this.communication = communication;
+  }
+
+  /**
+   * Internal: Log an info message to the console
+   * 
+   * @param args 
+   */
+  private log(...args: any[]) {
+    console.log(chalk.yellow("Network:"), ...args);
   }
 
   /**
@@ -19,7 +32,30 @@ export default class Network {
     await this.communication.sendMessage("setup done");
 
     this.communication.onMessage((sender, data) => {
-      console.log("Network received message from", sender, ":", data);
+      try {
+        const pack = stringToPackage(data);
+        this.log("Received package", pack.type.toString());
+        this.messageListeners.forEach(l => l(pack));
+      } catch (e) {
+        this.log("Could not parse message:", data);
+      }
     })
+  }
+
+  /**
+   * Add a new listener to call when a package is received
+   * 
+   * @param listener Listener to add
+   */
+  public onMessage(listener: (pack: NetworkPackage) => void) {
+    this.messageListeners.push(listener);
+  }
+  /**
+   * Remove a listener
+   * 
+   * @param listener Listener to remove
+   */
+  public removeMessageListener(listener: (pack: NetworkPackage) => void) {
+    this.messageListeners = this.messageListeners.filter(l => l !== listener);
   }
 }

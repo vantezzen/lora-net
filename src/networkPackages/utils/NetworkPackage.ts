@@ -15,6 +15,9 @@ export type DataInformation = {
   length: number;
 }
 
+/**
+ * Generic Network Package that handles all types of packages
+ */
 export default class NetworkPackage {
   // General Header
   type: NetworkPackageType = NetworkPackageType.UNKNOWN;
@@ -46,10 +49,20 @@ export default class NetworkPackage {
     },
   ];
 
+  /**
+   * Get total length of package in bits
+   * 
+   * @returns Length
+   */
   getBitLength() {
     return this.data.reduce((acc, cur) => acc + cur.length, 0);
   }
 
+  /**
+   * Create base64 encoded string for package for sending over network
+   * 
+   * @returns Base64 encoded string
+   */
   toPackage() {
     const outputBuffer = Buffer.alloc(this.getBitLength(), undefined, "binary");
     let offset = 0;
@@ -76,16 +89,21 @@ export default class NetworkPackage {
     return outputBuffer.toString("base64");
   }
 
+  /**
+   * Parse Base64 Encoded string package to set this instance's properties
+   * 
+   * @param packageString Package
+   */
   fromPackage(packageString: string) {
     const inputBuffer = Buffer.from(packageString, "base64");
-    console.log("Importing", JSON.stringify(inputBuffer));
+    const inputArray = new Uint8Array(inputBuffer);
 
     let offset = 0;
     for (const data of this.data) {
       let value;
       switch (data.type) {
         case "int":
-          const binary = inputBuffer.slice(offset, offset + data.length).toString("binary");
+          const binary = inputArray.slice(offset, offset + data.length).join("");
           value = parseInt(binary, 2);
           break;
         case "string":
