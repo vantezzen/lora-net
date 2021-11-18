@@ -10,6 +10,8 @@ export default class Communication {
   // Connection used as the lower layer
   private connection: Connection;
 
+  private messageListeners: ((sender: number, data: string) => void)[] = [];
+
   /**
    * Internal: Log a message to the console
    * 
@@ -38,6 +40,22 @@ export default class Communication {
     await this.connection.send("AT+CFG=433000000,5,6,12,4,1,0,0,0,0,3000,8,8");
     await this.waitForMessage("OK");
     await wait(this.connection.PAUSE_LENGTH);
+
+    this.connection.onData((data: string) => {
+      const [command] = data.split(",");
+      if (command === "LR") {
+        const [, sender, length, ...message] = data.split(",");
+        const messageString = message.join(",");
+
+        this.log("Received message from " + sender + ": " + messageString);
+
+        if (messageString.length !== parseInt(length)) {
+          this.log(`Warn: Received message does not have promised length (promised ${length}, actual: ${messageString.length})`);
+        }
+
+        this.messageListeners.forEach(l => l(parseInt(sender), messageString));
+      }
+    });
   }
 
   /**
@@ -47,16 +65,31 @@ export default class Communication {
    * and wait for the actions to complete.
    * 
    * @param message Message to send to the network
+   * @param allowSplitting Whether to allow splitting the message into multiple packets if it is too long
    * @return Promise that resolves when the message has been sent
    */
-  async sendMessage(message: string): Promise<void> {
+  async sendMessage(message: string, allowSplitting = true): Promise<void> {
     const length = message.length;
+
+    if (length > this.connection.MAX_MESSAGE_LENGTH) {
+      if (allowSplitting) {
+        this.log("Message is over max message length - splitting up");
+        for(let i = 0; i < length; i += this.connection.MAX_MESSAGE_LENGTH) {
+          await this.sendMessage(message.substr(i, this.connection.MAX_MESSAGE_LENGTH));
+        }
+      } else {
+        this.log("Message is over max message length but splitting is not allowed");
+      }
+      return;
+    }
+
+    this.log("Sending message with length", length);
 
     await this.connection.send("AT+SEND=" + length);
     await wait(this.connection.PAUSE_LENGTH);
 
     await this.connection.send(message);
-    await this.waitForMessage("SENDED");
+    await this.waitForMessage("SENDED", this.connection.PAUSE_LENGTH * length * 4);
     await wait(this.connection.PAUSE_LENGTH);
   }
 
@@ -72,7 +105,7 @@ export default class Communication {
    * @returns Promise
    */
   public waitForMessage(message: String | null = null, timeout = 10000): Promise<string> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       const listener = (data: string) => {
         if (message === null || data.includes(message as string)) {
           this.connection.removeListener(listener);
@@ -86,8 +119,24 @@ export default class Communication {
       let timeoutItem = setTimeout(() => {
         this.log("Timed out waiting for " + message);
         this.connection.removeListener(listener);
-        reject("Timeout");
+        resolve("Timeout");
       }, timeout);
     });
+  }
+
+  /**
+   * Retuns the connection used by this layer
+   * 
+   * @returns Connection
+   */
+  getConnection(): Connection {
+    return this.connection;
+  }
+
+  onMessage(listener: (sender: number, data: string) => void) {
+    this.messageListeners.push(listener);
+  }
+  removeMessageListener(listener: (sender: number, data: string) => void) {
+    this.messageListeners = this.messageListeners.filter(l => l !== listener);
   }
 }

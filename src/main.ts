@@ -5,6 +5,7 @@ import Connection from './Connection';
 import Communication from './Communication';
 import { wait } from './utils';
 import Network from './Network';
+import Console from './Console';
 
 (async () => {
 
@@ -39,21 +40,12 @@ import Network from './Network';
   await network.setup();
   console.log(chalk.green('Network setup'));
   
-  // 5. Create terminal-like to enable direct interaction with the module
-  console.log(chalk.green("Opening Terminal - type \"exit\" to exit"));
+  // 5. Create terminal-like to enable interaction with the module
+  const consoleInstance = new Console(communication);
+  consoleInstance.run().then(() => {
+    console.log(chalk.green('Terminal closed'));
+    connection.close();
+    process.exit();
+  });
 
-  while(true) {
-    const { Terminal: input } = await inquirer.prompt([{ type: 'input', name: 'Terminal' }]);
-
-    if (input === 'exit') {
-      console.log(chalk.red("Exit"));
-      break;
-    }
-
-    await connection.send(input);
-    await communication.waitForMessage();
-    await wait(connection.PAUSE_LENGTH);
-  }
-
-  connection.close();
 })();

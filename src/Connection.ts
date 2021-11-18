@@ -19,6 +19,7 @@ export default class Connection {
   // Constants
   NEWLINE = "\r\n"; // Character(s) to indicate the end of an instruction
   PAUSE_LENGTH = 500; // Time in ms to wait after sending a command before sending another
+  MAX_MESSAGE_LENGTH = 250; // Module only allows messages up to 250 bytes
 
   /**
    * Internal: Log an info message to the console

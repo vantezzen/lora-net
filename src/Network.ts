@@ -17,5 +17,9 @@ export default class Network {
    */
   public async setup(): Promise<void> {
     await this.communication.sendMessage("setup done");
+
+    this.communication.onMessage((sender, data) => {
+      console.log("Network received message from", sender, ":", data);
+    })
   }
 }
