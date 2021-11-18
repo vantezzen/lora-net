@@ -13,6 +13,11 @@ export type NetworkAddress = number;
 
 export type DataInformation = {
   name: string;
+
+  // Data can be used to dirrectly supply the needed value instead of using the class property
+  // with the given name
+  data?: any;
+
   type: "int" | "string";
   length: number;
 }
@@ -76,5 +81,18 @@ export default class NetworkPackage {
    */
   fromPackage(packageString: string) {
     setPackageDataFromString(packageString, this);
+  }
+
+  /**
+   * Set a specific property of the package.
+   * This is used internally by "fromPackage" to allow sub-packages to override
+   * the behaviour
+   * 
+   * @param name Name of property
+   * @param value Value of property
+   */
+  setPackageProperty(name: string, value: any) {
+    // @ts-ignore
+    this[name] = value;
   }
 }

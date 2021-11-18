@@ -21,7 +21,7 @@ export function getPackageString(packageInstance: NetworkPackage) {
   // Add each data packet to the buffer in the correct order
   for (const data of packageInstance.data) {
     // @ts-ignore
-    const value = packageInstance[data.name];
+    const value = data.data ?? packageInstance[data.name];
 
     // Get binary representation of value
     let binaryValue: number[] = [];
@@ -77,8 +77,7 @@ export function setPackageDataFromString(packageString: string, packageInstance:
     }
 
     // Update package instance with parsed value
-    // @ts-ignore
-    packageInstance[data.name] = value;
+    packageInstance.setPackageProperty(data.name, value);
     offset += data.length;
   }
 }

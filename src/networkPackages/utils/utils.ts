@@ -7,6 +7,21 @@ import NetworkPackage, { NetworkPackageType } from "./NetworkPackage";
 import { bufferToBinaryArray } from "../../utils";
 
 /**
+ * Get specific value from a raw package string.
+ * This can be used to "peek" specific values without having to parse the whole package.
+ * 
+ * @param packageString Package string to get the value from.
+ * @param start Start bit position
+ * @param end End bit position
+ * @returns Value as number
+ */
+export function getPackageValueFromRawString(packageString: string, start: number, end: number): number {
+  const inputBuffer = bufferToBinaryArray(Buffer.from(packageString, "base64"));
+  const binary = inputBuffer.slice(start, end).join("");
+  return parseInt(binary, 2);
+}
+
+/**
  * Get class constructor for package type
  * 
  * @param packageString Package string
@@ -14,9 +29,8 @@ import { bufferToBinaryArray } from "../../utils";
  * @throws Error if package is invalid
  */
 export function getClassForPackage(packageString: string): (new () => NetworkPackage) {
-  const inputBuffer = bufferToBinaryArray(Buffer.from(packageString, "base64"));
-  const binary = inputBuffer.slice(0, 5).join("");
-  const type = parseInt(binary, 2);
+  const type = getPackageValueFromRawString(packageString, 0, 4);
+  console.log("Parse type is", type);
   switch (type) {
     case NetworkPackageType.RREQ:
       return RREQ;
