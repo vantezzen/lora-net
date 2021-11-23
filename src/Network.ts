@@ -2,6 +2,7 @@ import chalk from "chalk";
 import Communication from "./Communication";
 import NetworkPackage from "./networkPackages/utils/NetworkPackage";
 import stringToPackage from "./networkPackages/utils/utils";
+import EventListener from "./utils/EventListener";
 
 /**
  * Layer 3: Network
@@ -10,7 +11,7 @@ import stringToPackage from "./networkPackages/utils/utils";
  */
 export default class Network {
   private communication: Communication;
-  private messageListeners: ((pack: NetworkPackage) => void)[] = [];
+  private messageListeners = new EventListener<NetworkPackage>();
 
   constructor(communication: Communication) {
     this.communication = communication;
@@ -29,11 +30,11 @@ export default class Network {
    * Let the network setup
    */
   public async setup(): Promise<void> {
-    this.communication.onMessage((sender, data) => {
+    this.communication.onMessage(({ data }) => {
       try {
         const pack = stringToPackage(data);
         this.log("Received package", pack.type.toString(), pack);
-        this.messageListeners.forEach(l => l(pack));
+        this.messageListeners.fire(pack);
       } catch (e) {
         this.log("Could not parse message:", data);
       }
@@ -46,7 +47,7 @@ export default class Network {
    * @param listener Listener to add
    */
   public onMessage(listener: (pack: NetworkPackage) => void) {
-    this.messageListeners.push(listener);
+    this.messageListeners.add(listener);
   }
   /**
    * Remove a listener
@@ -54,6 +55,6 @@ export default class Network {
    * @param listener Listener to remove
    */
   public removeMessageListener(listener: (pack: NetworkPackage) => void) {
-    this.messageListeners = this.messageListeners.filter(l => l !== listener);
+    this.messageListeners.remove(listener);
   }
 }

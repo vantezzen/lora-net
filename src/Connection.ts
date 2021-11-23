@@ -1,5 +1,6 @@
 import SerialPort from 'serialport';
 import chalk from 'chalk';
+import EventListener from './utils/EventListener';
 
 /**
  * Layer 1: Connection
@@ -13,7 +14,7 @@ export default class Connection {
   isOpen: boolean = false;
 
   // Internal
-  private connectionListeners: ((data: string) => any)[] = [];
+  private connectionListeners = new EventListener<string>();
   private inputBuffer = '';
 
   // Constants
@@ -83,7 +84,7 @@ export default class Connection {
 
         for(let i = 0; i < parts.length; i++) {
           this.log("Received message:", JSON.stringify(parts[i]));
-          this.connectionListeners.forEach((listener) => listener(parts[i]));
+          this.connectionListeners.fire(parts[i]);
         }
       }
     })
@@ -158,7 +159,7 @@ export default class Connection {
    * @param callback Callback to inform about data
    */
   onData(callback: (data: string) => any) {
-    this.connectionListeners.push(callback);
+    this.connectionListeners.add(callback);
   }
 
   /**
@@ -167,7 +168,7 @@ export default class Connection {
    * @param callback Callback to remove
    */
   removeListener(callback: (data: string) => any) {
-    this.connectionListeners = this.connectionListeners.filter((listener) => listener !== callback);
+    this.connectionListeners.remove(callback);
   }
 
 }

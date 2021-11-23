@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import Connection from "./Connection";
 import { wait } from "./utils";
+import EventListener from "./utils/EventListener";
 
 /**
  * Layer 2: Communication
@@ -10,7 +11,7 @@ export default class Communication {
   // Connection used as the lower layer
   private connection: Connection;
 
-  private messageListeners: ((sender: number, data: string) => void)[] = [];
+  private messageListeners = new EventListener<{ sender: number, data: string }>();
 
   /**
    * Internal: Log a message to the console
@@ -53,7 +54,7 @@ export default class Communication {
           this.log(`Warn: Received message does not have promised length (promised ${length}, actual: ${messageString.length})`);
         }
 
-        this.messageListeners.forEach(l => l(parseInt(sender), messageString));
+        this.messageListeners.fire({ sender: parseInt(sender), data: messageString });
       }
     });
   }
@@ -133,10 +134,10 @@ export default class Communication {
     return this.connection;
   }
 
-  onMessage(listener: (sender: number, data: string) => void) {
-    this.messageListeners.push(listener);
+  onMessage(listener: (data: { sender: number, data: string }) => void) {
+    this.messageListeners.add(listener);
   }
-  removeMessageListener(listener: (sender: number, data: string) => void) {
-    this.messageListeners = this.messageListeners.filter(l => l !== listener);
+  removeMessageListener(listener: (data: { sender: number, data: string }) => void) {
+    this.messageListeners.remove(listener);
   }
 }
