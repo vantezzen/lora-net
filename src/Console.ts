@@ -4,7 +4,7 @@ import Communication from "./Communication";
 import Network from "./Network";
 import { NetworkAddress } from "./networkPackages/utils/NetworkPackage";
 import { wait } from "./utils";
-import { getReverseRoutingTable, getRoutingTableString } from "./utils/Logging";
+import { getReverseRoutingTable, getRoutingTableDiagram, getRoutingTableString } from "./utils/Logging";
 
 export type CommandFunc = (...args: string[]) => Promise<boolean>;
 export type Command = {
@@ -69,6 +69,14 @@ export default class Console {
       handler: async () => {
         console.log(chalk.green(`Routing table:`));
         console.log(getRoutingTableString(this.network.router.routingTable));
+        return true;
+      }
+    },
+    drawroutes: {
+      description: "Print a diagram of the routing table",
+      handler: async () => {
+        console.log(chalk.green(`Routing table:`));
+        console.log(getRoutingTableDiagram(this.network.router.routingTable, this.network.ownAddress));
         return true;
       }
     },

@@ -3,7 +3,7 @@
  */
 import Network from "../Network";
 import { wait } from "../utils";
-import { logRoutingTable } from "../utils/Logging";
+import { getRoutingTableDiagram, logRoutingTable } from "../utils/Logging";
 import CommunicationMock from "./CommunicationMock";
 const debug = require('debug')('lora:VNet');
 
@@ -138,5 +138,7 @@ setInterval(() => {
 
   for(const instance of Object.values(instances)) {
     logRoutingTable(instance.network.router.routingTable, instance.network.ownAddress);
+
+    console.log(instance.network.ownAddress, ":\n", getRoutingTableDiagram(instance.network.router.routingTable, instance.network.ownAddress));
   }
 }, 10000);
