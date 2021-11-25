@@ -2,21 +2,49 @@
  * Virtual Network creator to test the code for different network configurations
  */
 import Network from "../Network";
+import { wait } from "../utils";
 import CommunicationMock from "./CommunicationMock";
 
 // Main network configuration
 // Define nodes in the network and what nodes they can communicate with
 const networkConfig = {
   nodes: [
-    1, 2, 3, 4, 5
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
   ],
   links: [
     [1, 2],
+    [1, 6],
     [2, 3],
     [3, 4],
-    [4, 5],
+    [4, 5], 
+    [5, 10],
+    [2, 12],
+    [12, 7],
+    [7, 9],
+    [7, 8],
+    [8, 11],
+    [8, 10],
   ],
 };
+// Messages to send over the network
+const messages = [
+  {
+    sender: 1,
+    receiver: 2,
+  },
+  {
+    sender: 1,
+    receiver: 9,
+  },
+  {
+    sender: 5,
+    receiver: 6,
+  },
+  {
+    sender: 3,
+    receiver: 11,
+  }
+];
 
 type Instance = {
   communication: CommunicationMock;
@@ -73,5 +101,10 @@ const runMessageQueue = async () => {
 }
 runMessageQueue();
 
-console.log("VNet: Sending message from 1 to 5");
-instances[1].network.sendMessage("Hello from 1 to 5", 5);
+console.log("VNet: Sending test messages");
+(async () => {
+  for (const message of messages) {
+    instances[message.sender].network.sendMessage(`Hello ${message.sender} -> ${message.receiver}`, message.receiver);
+    await wait(3000);
+  }
+})();
