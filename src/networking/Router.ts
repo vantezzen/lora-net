@@ -49,7 +49,7 @@ export default class Router {
 
     this.log('Setting up routing');
 
-    this.network.onMessage(this.handlePackage.bind(this));
+    this.network.onPackage(this.handlePackage.bind(this));
     this.routingTable.push({
       destination: this.network.ownAddress,
       nextHop: this.network.ownAddress,
@@ -144,6 +144,12 @@ export default class Router {
     })
   }
 
+  /**
+   * Send a package to the network using a route from the routing table
+   * 
+   * @param pack Package to send
+   * @param route Route to use for sending
+   */
   public sendUsingRoute(pack: NetworkPackage, route: RoutingTableEntry) {
     this.log("Sending", pack.type.toString(), "using route", route);
     pack.nextHop = route.nextHop;
@@ -345,7 +351,7 @@ export default class Router {
   private handleMSG(pack: MSG) {
     if (pack.destination === this.network.ownAddress) {
       this.log("MSG for own address");
-      // TODO: Handle
+      this.network.fireNewMessageEvent(pack.payload);
       return;
     } else {
       this.log("MSG for", pack.destination);

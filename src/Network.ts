@@ -15,7 +15,8 @@ import EventListener from "./utils/EventListener";
  */
 export default class Network {
   private communication: ICommunication;
-  private messageListeners = new EventListener<NetworkPackage>();
+  private packageListeners = new EventListener<NetworkPackage>();
+  private messageListeners = new EventListener<string>();
   private router: Router;
 
   static BROADCAST_ADDRESS = 255;
@@ -29,6 +30,10 @@ export default class Network {
     this.router = new Router(this);
 
     this.log("Setting up with address", this.ownAddress);
+
+    this.onMessage((message) => {
+      console.log(chalk.bgRed.bold.black('MESSAGE:'), message);
+    });
   }
 
   /**
@@ -49,7 +54,7 @@ export default class Network {
         const pack = stringToPackage(data);
         if (pack.nextHop === this.ownAddress || pack.nextHop === Network.BROADCAST_ADDRESS) {
           this.log("Received package", pack.type.toString(), pack);
-          this.messageListeners.fire(pack);
+          this.packageListeners.fire(pack);
         } else {
           this.log("Received package for someone else - ignoring", pack.type.toString(), pack);
         }
@@ -74,18 +79,25 @@ export default class Network {
    * 
    * @param listener Listener to add
    */
-  public onMessage(listener: (pack: NetworkPackage) => void) {
-    this.messageListeners.add(listener);
+  public onPackage(listener: (pack: NetworkPackage) => void) {
+    this.packageListeners.add(listener);
   }
   /**
    * Remove a listener
    * 
    * @param listener Listener to remove
    */
-  public removeMessageListener(listener: (pack: NetworkPackage) => void) {
-    this.messageListeners.remove(listener);
+  public removePackageListener(listener: (pack: NetworkPackage) => void) {
+    this.packageListeners.remove(listener);
   }
 
+  /**
+   * Send a message to a receiver using multihop routing
+   * 
+   * @param message Message to send
+   * @param receiver Receiver to send message to
+   * @returns Promise that resolves once message has been sent
+   */
   public async sendMessage(message: string, receiver: NetworkAddress) {
     this.log("Sending message to", receiver, message);
    
@@ -104,6 +116,32 @@ export default class Network {
     this.increaseSequenceNumber();
 
     this.router.sendUsingRoute(msg, route);
+  }
+  /**
+   * Add a new listener to call when a message (MSG) is received
+   * 
+   * @param listener Listener to add
+   */
+  public onMessage(listener: (text: string) => void) {
+    this.messageListeners.add(listener);
+  }
+  /**
+   * Remove a listener
+   * 
+   * @param listener Listener to remove
+   */
+  public removeMessageListener(listener: (text: string) => void) {
+    this.messageListeners.remove(listener);
+  }
+
+  /**
+   * Fire all listeners for messages.
+   * Should be called by the router
+   * 
+   * @param text Text that got received
+   */
+  public fireNewMessageEvent(text: string) {
+    this.messageListeners.fire(text);
   }
 
   /**

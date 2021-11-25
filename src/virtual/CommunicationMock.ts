@@ -28,24 +28,11 @@ export default class CommunicationMock implements ICommunication {
     this.log("Setting up");
   }
 
+  // Should be implemented by the mock class
   async sendMessage(message: string, allowSplitting = true): Promise<void> {}
 
-  public waitForMessage(message: String | null = null, timeout = 10000): Promise<string> {
-    return new Promise((resolve) => {
-      const listener = (data: string) => {
-        if (message === null || data.includes(message as string)) {
-          clearTimeout(timeoutItem);
-          resolve(data);
-        }
-      };
-
-
-      let timeoutItem = setTimeout(() => {
-        this.log("Timed out waiting for " + message);
-        // this.connection.removeListener(listener);
-        resolve("Timeout");
-      }, timeout);
-    });
+  public waitForMessage(): Promise<string> {
+    throw new Error("Method not implemented.");
   }
 
   onMessage(listener: (data: { sender: number, data: string }) => void) {
@@ -54,7 +41,6 @@ export default class CommunicationMock implements ICommunication {
   removeMessageListener(listener: (data: { sender: number, data: string }) => void) {
     this.messageListeners.remove(listener);
   }
-
 
   /**
    * Mock function used to simulate receiving a message
