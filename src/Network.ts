@@ -18,7 +18,7 @@ export default class Network {
   private communication: ICommunication;
   private packageListeners = new EventListener<NetworkPackage>();
   private messageListeners = new EventListener<string>();
-  private router: Router;
+  router: Router;
 
   static BROADCAST_ADDRESS = 255;
 

@@ -3,6 +3,7 @@
  */
 import Network from "../Network";
 import { wait } from "../utils";
+import { logRoutingTable } from "../utils/Logging";
 import CommunicationMock from "./CommunicationMock";
 const debug = require('debug')('lora:VNet');
 
@@ -45,18 +46,18 @@ const messages = [
     sender: 1,
     receiver: 11,
   },
-  // {
-  //   sender: 1,
-  //   receiver: 9,
-  // },
-  // {
-  //   sender: 5,
-  //   receiver: 6,
-  // },
-  // {
-  //   sender: 3,
-  //   receiver: 11,
-  // }
+  {
+    sender: 1,
+    receiver: 9,
+  },
+  {
+    sender: 5,
+    receiver: 6,
+  },
+  {
+    sender: 3,
+    receiver: 11,
+  }
 ];
 
 type Instance = {
@@ -131,3 +132,11 @@ debug("VNet: Sending test messages");
     await wait(3000);
   }
 })();
+
+setInterval(() => {
+  debug("VNet: Queue length", messageQueue.length);
+
+  for(const instance of Object.values(instances)) {
+    logRoutingTable(instance.network.router.routingTable, instance.network.ownAddress);
+  }
+}, 10000);

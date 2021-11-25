@@ -14,7 +14,7 @@ import { handleRERR } from "./handle/RERR";
 import { handleRREP } from "./handle/RREP";
 import { handleRREQ } from "./handle/RREQ";
 import { sendRREQ } from "./send/RREQ";
-const debug = require('debug')('lora:Router');
+const debug = require('debug');
 
 export type RoutingTableEntry = {
   destination: NetworkAddress;
@@ -49,7 +49,7 @@ export default class Router {
    * @param args 
    */
   log(...args: any[]) {
-    debug(...args);
+    debug('lora:Router:' + this.network.ownAddress)(...args);
   }
 
   constructor(network: Network) {

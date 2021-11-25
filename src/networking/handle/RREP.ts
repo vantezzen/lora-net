@@ -1,5 +1,5 @@
 import RREP from "../../networkPackages/RREP";
-import { isSeqNumNewer } from "../../networkPackages/utils/SequenceNumbers";
+import { isSeqNumNewer, isSeqNumNewerOrEqual } from "../../networkPackages/utils/SequenceNumbers";
 import Router, { ReverseRoutingTableEntry, RoutingTableEntry } from "../Router";
 import sendACK from "../send/ACK";
 
@@ -35,14 +35,7 @@ export async function handleRREP(pack: RREP, router: Router) {
 
   // Check if we should use this route for ourself
   const tableEntry = router.routingTable.reduce<RoutingTableEntry | null>((entry, current) => {
-    if (
-      current.destination === pack.destination && (
-      isSeqNumNewer(current.sequenceNumber, pack.sequenceNumber) ||
-      (
-        current.sequenceNumber === pack.sequenceNumber &&
-        current.metric > pack.hopCount
-      )
-    )) {
+    if (current.destination === pack.originatorAddress && current.isValid) {
       return current;
     }
     return entry;
@@ -54,8 +47,9 @@ export async function handleRREP(pack: RREP, router: Router) {
       (
         // Must be Newer
         isSeqNumNewer(pack.sequenceNumber, tableEntry.sequenceNumber) ||
+
+        // Or same age with lower metric
         (
-          // Or same age with lower metric
           tableEntry.sequenceNumber === pack.sequenceNumber &&
           tableEntry.metric > pack.hopCount
         )
