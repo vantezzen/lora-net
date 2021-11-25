@@ -2,7 +2,7 @@ import RREP from "../../networkPackages/RREP";
 import RREQ from "../../networkPackages/RREQ";
 import Router, { RoutingTableEntry } from "../Router";
 
-export function sendRREP(entry: RoutingTableEntry, pack: RREQ, router: Router) {
+export async function sendRREP(entry: RoutingTableEntry, pack: RREQ, router: Router) {
   const rrep = new RREP();
 
   rrep.nextHop = pack.source;
@@ -18,5 +18,5 @@ export function sendRREP(entry: RoutingTableEntry, pack: RREQ, router: Router) {
 
   router.log("Sending RREP for", pack.destination, "with sequence number", rrep.destinationSequenceNumber);
 
-  router.network.sendPackage(rrep);
+  await router.sendWithAck(rrep);
 }

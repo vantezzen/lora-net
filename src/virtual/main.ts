@@ -7,43 +7,54 @@ import CommunicationMock from "./CommunicationMock";
 
 // Main network configuration
 // Define nodes in the network and what nodes they can communicate with
+// const networkConfig = {
+//   nodes: [
+//     1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
+//   ],
+//   links: [
+//     [1, 2],
+//     [1, 6],
+//     [2, 3],
+//     [3, 4],
+//     [4, 5], 
+//     [5, 10],
+//     [2, 12],
+//     [12, 7],
+//     [7, 9],
+//     [7, 8],
+//     [8, 11],
+//     [8, 10],
+//   ],
+// };
 const networkConfig = {
   nodes: [
-    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
+    1, 2, 3, 4
   ],
   links: [
     [1, 2],
-    [1, 6],
     [2, 3],
     [3, 4],
-    [4, 5], 
-    [5, 10],
-    [2, 12],
-    [12, 7],
-    [7, 9],
-    [7, 8],
-    [8, 11],
-    [8, 10],
   ],
+  probabilityFailSending: 0.1,
 };
 // Messages to send over the network
 const messages = [
   {
     sender: 1,
-    receiver: 2,
+    receiver: 4,
   },
-  {
-    sender: 1,
-    receiver: 9,
-  },
-  {
-    sender: 5,
-    receiver: 6,
-  },
-  {
-    sender: 3,
-    receiver: 11,
-  }
+  // {
+  //   sender: 1,
+  //   receiver: 9,
+  // },
+  // {
+  //   sender: 5,
+  //   receiver: 6,
+  // },
+  // {
+  //   sender: 3,
+  //   receiver: 11,
+  // }
 ];
 
 type Instance = {
@@ -92,6 +103,16 @@ const runMessageQueue = async () => {
     setTimeout(runMessageQueue, 100);
     return;
   }
+
+  if (
+    // Random chance to fail sending
+    Math.random() < networkConfig.probabilityFailSending
+  ) {
+    console.log("VNet: Simulated Failed sending");
+    runMessageQueue();
+    return;
+  }
+
   const message = messageQueue.shift();
   if (message) {
     console.log("VNet: Sending message from queue");

@@ -1,11 +1,15 @@
 import RREP from "../../networkPackages/RREP";
 import { isSeqNumNewer } from "../../networkPackages/utils/SequenceNumbers";
 import Router, { ReverseRoutingTableEntry, RoutingTableEntry } from "../Router";
+import sendACK from "../send/ACK";
 
-export function handleRREP(pack: RREP, router: Router) {
+export async function handleRREP(pack: RREP, router: Router) {
   router.log("Received RREP from", pack.source, "for", pack.destination);
   pack.hopCount++;
   pack.ttl--;
+
+  // We need to wait for ACK sended as the module might be busy otherwise
+  await sendACK(pack.source, router);
 
   // Get reverse table entry
   const reverseEntry = router.reverseRoutingTable.reduce<ReverseRoutingTableEntry | null>((last, entry) => {
@@ -81,6 +85,6 @@ export function handleRREP(pack: RREP, router: Router) {
     router.log('Has reverse entry, relaying package to next hop');
     pack.nextHop = reverseEntry.precusor;
     pack.source = router.network.ownAddress;
-    router.network.sendPackage(pack);
+    await router.sendWithAck(pack);
   }
 }

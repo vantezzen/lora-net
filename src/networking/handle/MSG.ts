@@ -1,7 +1,11 @@
 import MSG from "../../networkPackages/MSG";
 import Router from "../Router";
+import sendACK from "../send/ACK";
 
-export function handleMSG(pack: MSG, router: Router) {
+export async function handleMSG(pack: MSG, router: Router) {
+  // We need to wait for ACK sended as the module might be busy otherwise
+  await sendACK(pack.source, router);
+
   if (pack.destination === router.network.ownAddress) {
     router.log("MSG for own address");
     router.network.fireNewMessageEvent(pack.payload);
@@ -12,7 +16,7 @@ export function handleMSG(pack: MSG, router: Router) {
     if (route) {
       pack.nextHop = route.nextHop;
       pack.source = router.network.ownAddress;
-      router.network.sendPackage(pack);
+      await router.sendWithAck(pack);
     } else {
       router.log("No route to", pack.destination);
       // TODO: Send RERR

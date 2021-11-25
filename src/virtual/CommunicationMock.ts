@@ -31,8 +31,8 @@ export default class CommunicationMock implements ICommunication {
   // Should be implemented by the mock class
   async sendMessage(message: string, allowSplitting = true): Promise<void> {}
 
-  public waitForMessage(): Promise<string> {
-    throw new Error("Method not implemented.");
+  public async waitForMessage(message?: string | null): Promise<string> {
+    return message ?? "Yes";
   }
 
   onMessage(listener: (data: { sender: number, data: string }) => void) {

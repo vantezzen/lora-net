@@ -1,11 +1,14 @@
 import chalk from "chalk";
 import Network from "../Network";
+import ACK from "../networkPackages/ACK";
 import MSG from "../networkPackages/MSG";
 import RERR from "../networkPackages/RERR";
 import RREP from "../networkPackages/RREP";
 import RREQ from "../networkPackages/RREQ";
 import NetworkPackage, { NetworkAddress, NetworkPackageType } from "../networkPackages/utils/NetworkPackage";
+import { wait } from "../utils";
 import EventListener from "../utils/EventListener";
+import { handleACK } from "./handle/ACK";
 import { handleMSG } from "./handle/MSG";
 import { handleRERR } from "./handle/RERR";
 import { handleRREP } from "./handle/RREP";
@@ -32,6 +35,7 @@ export default class Router {
   routingTable: RoutingTableEntry[] = [];
   reverseRoutingTable: ReverseRoutingTableEntry[] = [];
   newRouteEvent = new EventListener<RoutingTableEntry>();
+  ackEvent = new EventListener<ACK>();
 
   currentRreqId = 0;
   network: Network;
@@ -70,14 +74,14 @@ export default class Router {
    * @returns Table entry for the destination or null if no route can be found
    */
   public getRouteFor(destination: NetworkAddress): Promise<RoutingTableEntry | null> {
-    return new Promise((resolve) => {
+    return new Promise(async (resolve) => {
       const existingEntry = this.routingTable.find(entry => entry.destination === destination);
       if (existingEntry) {
         resolve(existingEntry);
         return;
       }
   
-      sendRREQ(destination, this);
+      await sendRREQ(destination, this);
 
       let hasResolved = false;
       const onNewRoute = (entry: RoutingTableEntry) => {
@@ -127,6 +131,57 @@ export default class Router {
       handleRERR(pack as RERR, this);
     } else if (pack.type === NetworkPackageType.MSG) {
       handleMSG(pack as MSG, this);
+    } else if (pack.type === NetworkPackageType.ACK) {
+      handleACK(pack as ACK, this);
     }
+  }
+
+  /**
+   * Wait for an acknowledgement packet from a specific source
+   * 
+   * @param sender Sender to look for
+   * @param timeout Timeout in milliseconds
+   * @returns Resolves with "true" if a packet was received, "false" if the timeout was reached
+   */
+  waitForAck(sender: NetworkAddress, timeout = 5000): Promise<boolean> {
+    return new Promise((resolve) => {
+      const onAck = (ack: ACK) => {
+        if (ack.source === sender) {
+          this.ackEvent.remove(onAck);
+          resolve(true);
+        }
+      };
+      this.ackEvent.add(onAck);
+      setTimeout(() => {
+        this.ackEvent.remove(onAck);
+        resolve(false);
+      }, timeout);
+    });
+  }
+
+  /**
+   * Send a package with acknowledgement required
+   * 
+   * @param pack Package to send
+   * @param retries Amount of retries to send the package
+   * @returns True if the package was acknowledged, false if the retries were exceeded
+   */
+  public async sendWithAck(pack: NetworkPackage, retries = 3): Promise<boolean> {
+    let hasAcknowledged = false;
+    while(!hasAcknowledged && retries > 0) {
+      await this.network.sendPackage(pack);
+      hasAcknowledged = await this.waitForAck(pack.nextHop);
+      retries--;
+
+      if (!hasAcknowledged) {
+        this.log("Retrying sending", pack.type.toString(), "to", pack.nextHop);
+      }
+    }
+
+    if (!hasAcknowledged) {
+      this.log("Failed to send", pack.type.toString(), "to", pack.nextHop, ": Retries for ACK exceeded");
+      return false;
+    }
+    return true;
   }
 }

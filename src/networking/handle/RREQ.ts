@@ -1,9 +1,11 @@
 import RREQ from "../../networkPackages/RREQ";
 import Router, { ReverseRoutingTableEntry } from "../Router";
+import sendACK from "../send/ACK";
 import { sendRREP } from "../send/RREP";
 
-export function handleRREQ(pack: RREQ, router: Router) {
+export async function handleRREQ(pack: RREQ, router: Router) {
   router.log("Received RREQ from", pack.source, "for", pack.destination);
+
   pack.hopCount++;
   pack.ttl--;
 
@@ -29,7 +31,7 @@ export function handleRREQ(pack: RREQ, router: Router) {
     );
   });
   if (entry) {
-    sendRREP(entry, pack, router);
+    await sendRREP(entry, pack, router);
     return;
   }
 
@@ -47,6 +49,6 @@ export function handleRREQ(pack: RREQ, router: Router) {
   if (pack.ttl > 0) {
     pack.source = router.network.ownAddress;
 
-    router.network.sendPackage(pack);
+    await router.network.sendPackage(pack);
   }
 }

@@ -72,6 +72,7 @@ export default class Network {
   public async sendPackage(pack: NetworkPackage) {
     this.log("Sending package", pack);
     await this.communication.sendMessage(pack.toPackage());
+    await this.communication.waitForMessage("SENDED");
   }
 
   /**
