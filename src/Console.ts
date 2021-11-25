@@ -4,6 +4,7 @@ import Communication from "./Communication";
 import Network from "./Network";
 import { NetworkAddress } from "./networkPackages/utils/NetworkPackage";
 import { wait } from "./utils";
+import { getReverseRoutingTable, getRoutingTableString } from "./utils/Logging";
 
 export type CommandFunc = (...args: string[]) => Promise<boolean>;
 export type Command = {
@@ -60,6 +61,35 @@ export default class Console {
         this.network.sendMessage(args.join(" "), Number(dest) as NetworkAddress);
         
         await wait(this.communication.getConnection().PAUSE_LENGTH);
+        return true;
+      }
+    },
+    routes: {
+      description: "Print this node's routing table",
+      handler: async () => {
+        console.log(chalk.green(`Routing table:`));
+        console.log(getRoutingTableString(this.network.router.routingTable));
+        return true;
+      }
+    },
+    revroutes: {
+      description: "Print this node's reverse routing table",
+      handler: async () => {
+        console.log(chalk.green(`Reverse routing table:`));
+        console.log(getReverseRoutingTable(this.network.router.reverseRoutingTable));
+        return true;
+      }
+    },
+    status: {
+      description: "Print this node's status",
+      handler: async () => {
+        console.log(chalk.green(`Status:`));
+        console.log(`
+Address: ${this.network.ownAddress}
+Sequence Number: ${this.network.sequenceNumber}
+Routing Table Size: ${this.network.router.routingTable.length}
+Reverse Routing Table Size: ${this.network.router.reverseRoutingTable.length}
+`);
         return true;
       }
     }

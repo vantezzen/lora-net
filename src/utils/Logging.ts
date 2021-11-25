@@ -1,11 +1,24 @@
 import Table from 'cli-table'
-import { RoutingTableEntry } from "../networking/Router";
+import { ReverseRoutingTableEntry, RoutingTableEntry } from "../networking/Router";
 import { NetworkAddress } from "../networkPackages/utils/NetworkPackage";
 
-export function logRoutingTable(routingTable: RoutingTableEntry[], address: NetworkAddress) {
-  const debug = require("debug")("lora:RoutingTable:" + address);
-  debug("Routing table for " + address);
+export function getReverseRoutingTable(routingTable: ReverseRoutingTableEntry[]): string {
+  const table = new Table({
+    head: ['Destination', 'Source', 'RREQ ID', 'Precusor', 'Metric']
+  });
+  for (const entry of routingTable) {
+    table.push([
+      entry.destination,
+      entry.source,
+      entry.rreqId,
+      entry.precusor,
+      entry.metric
+    ]);
+  }
+  return table.toString();
+}
 
+export function getRoutingTableString(routingTable: RoutingTableEntry[]): string {
   const table = new Table({
     head: ['Destination', 'Next Hop', 'Precursors', 'Metric', 'Sequence Number', 'Valid']
   });
@@ -19,5 +32,11 @@ export function logRoutingTable(routingTable: RoutingTableEntry[], address: Netw
       entry.isValid
     ]);
   }
-  debug(table.toString());
+  return table.toString();
+}
+
+export function logRoutingTable(routingTable: RoutingTableEntry[], address: NetworkAddress) {
+  const debug = require("debug")("lora:RoutingTable:" + address);
+  debug("Routing table for " + address);
+  debug(getRoutingTableString(routingTable));
 }
