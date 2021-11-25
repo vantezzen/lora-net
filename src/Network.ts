@@ -7,6 +7,7 @@ import NetworkPackage, { NetworkAddress } from "./networkPackages/utils/NetworkP
 import { withBitOverflow } from "./networkPackages/utils/SequenceNumbers";
 import stringToPackage from "./networkPackages/utils/utils";
 import EventListener from "./utils/EventListener";
+const debug = require('debug')('lora:Network');
 
 /**
  * Layer 3: Network
@@ -42,7 +43,7 @@ export default class Network {
    * @param args 
    */
   private log(...args: any[]) {
-    console.log(chalk.yellow("Network (" + this.ownAddress + "):"), ...args);
+    debug("(Addr " + this.ownAddress + "):", ...args);
   }
 
   /**

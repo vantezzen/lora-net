@@ -3,6 +3,7 @@ import Connection from "../Connection";
 import ICommunication from "../interfaces/ICommunication";
 import { wait } from "../utils";
 import EventListener from "../utils/EventListener";
+const debug = require('debug')('lora:CommunicationMock');
 
 /**
  * Layer 2: Communication Mock
@@ -16,7 +17,7 @@ export default class CommunicationMock implements ICommunication {
    * @param args 
    */
   private log(...args: any[]) {
-    console.log(chalk.green("Communication Mock:"), ...args);
+    debug(...args);
   }
 
   /**

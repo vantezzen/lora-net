@@ -8,12 +8,14 @@
     "start": "ts-node src/main.ts",
     "watch": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/main.ts",
     "package-test": "ts-node src/packageTest.ts",
-    "run-virtual": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/virtual/main.ts"
+    "run-virtual": "DEBUG=lora:VNet nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/virtual/main.ts"
   },
   "author": "",
   "license": "MIT",
   "dependencies": {
     "chalk": "^4.1.2",
+    "cli-table": "^0.3.9",
+    "debug": "^4.3.2",
     "glob": "^7.2.0",
     "inquirer": "^8.2.0",
     "serialport": "^9.2.4"

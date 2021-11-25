@@ -1,6 +1,7 @@
 import SerialPort from 'serialport';
 import chalk from 'chalk';
 import EventListener from './utils/EventListener';
+const debug = require('debug')('lora:Connection');
 
 /**
  * Layer 1: Connection
@@ -28,7 +29,7 @@ export default class Connection {
    * @param args 
    */
   private log(...args: any[]) {
-    //console.log(chalk.blue("Connection:"), ...args);
+    debug(...args);
   }
 
   constructor(portName: string) {

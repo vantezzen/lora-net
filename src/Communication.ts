@@ -3,6 +3,7 @@ import Connection from "./Connection";
 import ICommunication from "./interfaces/ICommunication";
 import { wait } from "./utils";
 import EventListener from "./utils/EventListener";
+const debug = require('debug')('lora:Communication');
 
 /**
  * Layer 2: Communication
@@ -20,7 +21,7 @@ export default class Communication implements ICommunication {
    * @param args 
    */
   private log(...args: any[]) {
-    console.log(chalk.green("Communication:"), ...args);
+    debug(...args);
   }
 
   /**

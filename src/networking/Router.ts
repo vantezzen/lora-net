@@ -14,6 +14,7 @@ import { handleRERR } from "./handle/RERR";
 import { handleRREP } from "./handle/RREP";
 import { handleRREQ } from "./handle/RREQ";
 import { sendRREQ } from "./send/RREQ";
+const debug = require('debug')('lora:Router');
 
 export type RoutingTableEntry = {
   destination: NetworkAddress;
@@ -48,7 +49,7 @@ export default class Router {
    * @param args 
    */
   log(...args: any[]) {
-    console.log(chalk.magenta("Router (" + this.network.ownAddress + "):"), ...args);
+    debug(...args);
   }
 
   constructor(network: Network) {

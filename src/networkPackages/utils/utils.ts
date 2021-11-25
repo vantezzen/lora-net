@@ -5,6 +5,7 @@ import RREP from "../RREP";
 import RREQ from "../RREQ";
 import NetworkPackage, { NetworkPackageType } from "./NetworkPackage";
 import { bufferToBinaryArray } from "../../utils";
+const debug = require('debug')('lora:urils');
 
 /**
  * Get specific value from a raw package string.
@@ -30,7 +31,7 @@ export function getPackageValueFromRawString(packageString: string, start: numbe
  */
 export function getClassForPackage(packageString: string): (new () => NetworkPackage) {
   const type = getPackageValueFromRawString(packageString, 0, 4);
-  console.log("Parse type is", type);
+  debug("Parse type is", type);
   switch (type) {
     case NetworkPackageType.RREQ:
       return RREQ;
