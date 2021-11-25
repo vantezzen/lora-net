@@ -28,7 +28,7 @@ export default class Connection {
    * @param args 
    */
   private log(...args: any[]) {
-    console.log(chalk.blue("Connection:"), ...args);
+    //console.log(chalk.blue("Connection:"), ...args);
   }
 
   constructor(portName: string) {

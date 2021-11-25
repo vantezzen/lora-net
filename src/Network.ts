@@ -24,7 +24,9 @@ export default class Network {
 
   constructor(communication: Communication, ownAddress: NetworkAddress) {
     this.communication = communication;
-    this.ownAddress = ownAddress;
+    this.ownAddress = Number(ownAddress);
+
+    this.log("Setting up with address", this.ownAddress);
   }
 
   /**
