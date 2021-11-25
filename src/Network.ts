@@ -1,5 +1,6 @@
 import chalk from "chalk";
 import Communication from "./Communication";
+import ICommunication from "./interfaces/ICommunication";
 import Router from "./networking/Router";
 import MSG from "./networkPackages/MSG";
 import NetworkPackage, { NetworkAddress } from "./networkPackages/utils/NetworkPackage";
@@ -13,18 +14,19 @@ import EventListener from "./utils/EventListener";
  * to build the adhoc, multihop network
  */
 export default class Network {
-  private communication: Communication;
+  private communication: ICommunication;
   private messageListeners = new EventListener<NetworkPackage>();
-  private router = new Router(this);
+  private router: Router;
 
   static BROADCAST_ADDRESS = 255;
 
   ownAddress: NetworkAddress;
   sequenceNumber = 0;
 
-  constructor(communication: Communication, ownAddress: NetworkAddress) {
+  constructor(communication: ICommunication, ownAddress: NetworkAddress) {
     this.communication = communication;
     this.ownAddress = Number(ownAddress);
+    this.router = new Router(this);
 
     this.log("Setting up with address", this.ownAddress);
   }
@@ -35,7 +37,7 @@ export default class Network {
    * @param args 
    */
   private log(...args: any[]) {
-    console.log(chalk.yellow("Network:"), ...args);
+    console.log(chalk.yellow("Network (" + this.ownAddress + "):"), ...args);
   }
 
   /**
@@ -97,11 +99,11 @@ export default class Network {
     msg.sequenceNumber = this.sequenceNumber;
     msg.source = this.ownAddress;
     msg.destination = receiver;
-    msg.nextHop = route.nextHop;
     msg.hopCount = 0;
     msg.payload = message;
     this.increaseSequenceNumber();
-    this.sendPackage(msg);
+
+    this.router.sendUsingRoute(msg, route);
   }
 
   /**

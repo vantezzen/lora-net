@@ -7,7 +7,8 @@
     "build": "tsc -p .",
     "start": "ts-node src/main.ts",
     "watch": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/main.ts",
-    "package-test": "ts-node src/packageTest.ts"
+    "package-test": "ts-node src/packageTest.ts",
+    "run-virtual": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/virtual/main.ts"
   },
   "author": "",
   "license": "MIT",

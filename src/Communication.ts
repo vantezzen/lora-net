@@ -1,5 +1,6 @@
 import chalk from "chalk";
 import Connection from "./Connection";
+import ICommunication from "./interfaces/ICommunication";
 import { wait } from "./utils";
 import EventListener from "./utils/EventListener";
 
@@ -7,7 +8,7 @@ import EventListener from "./utils/EventListener";
  * Layer 2: Communication
  * Handle communication with the module and simplify the process of sending and receiving data.
  */
-export default class Communication {
+export default class Communication implements ICommunication {
   // Connection used as the lower layer
   private connection: Connection;
 

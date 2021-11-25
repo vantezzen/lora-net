@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import { resolve } from "path/posix";
 import Network from "../Network";
+import MSG from "../networkPackages/MSG";
 import RERR from "../networkPackages/RERR";
 import RREP from "../networkPackages/RREP";
 import RREQ from "../networkPackages/RREQ";
@@ -30,6 +31,7 @@ export default class Router {
   private newRouteEvent = new EventListener<RoutingTableEntry>();
 
   private currentRreqId = 0;
+  private network: Network;
 
   static ROUTE_WAIT_TIME = 60000;
 
@@ -38,15 +40,19 @@ export default class Router {
    * 
    * @param args 
    */
-   private log(...args: any[]) {
-    console.log(chalk.magenta("Router:"), ...args);
+  private log(...args: any[]) {
+    console.log(chalk.magenta("Router (" + this.network.ownAddress + "):"), ...args);
   }
 
-  constructor(private network: Network) {
-    network.onMessage(this.handlePackage.bind(this));
+  constructor(network: Network) {
+    this.network = network;
+
+    this.log('Setting up routing');
+
+    this.network.onMessage(this.handlePackage.bind(this));
     this.routingTable.push({
-      destination: network.ownAddress,
-      nextHop: network.ownAddress,
+      destination: this.network.ownAddress,
+      nextHop: this.network.ownAddress,
       precursors: [],
       metric: 0,
       sequenceNumber: 0,
@@ -138,6 +144,12 @@ export default class Router {
     })
   }
 
+  public sendUsingRoute(pack: NetworkPackage, route: RoutingTableEntry) {
+    this.log("Sending", pack.type.toString(), "using route", route);
+    pack.nextHop = route.nextHop;
+    this.network.sendPackage(pack);
+  }
+
   /// HANDLERS FOR INCOMMING MESSAGES ///
 
   private handlePackage(pack: NetworkPackage) {
@@ -147,6 +159,8 @@ export default class Router {
       this.handleRREP(pack as RREP);
     } else if (pack.type === NetworkPackageType.RERR) {
       this.handleRERR(pack as RERR);
+    } else if (pack.type === NetworkPackageType.MSG) {
+      this.handleMSG(pack as MSG);
     }
   }
   
@@ -155,12 +169,25 @@ export default class Router {
     pack.hopCount++;
     pack.ttl--;
 
+    if (pack.originatorAddress === this.network.ownAddress) {
+      this.log("Ignoring RREQ from myself");
+      return;
+    }
+
+    const hasReverseRouteEntry = this.reverseRoutingTable.find(entry => (entry.rreqId === pack.rreqId && entry.source === pack.originatorAddress));
+    if (hasReverseRouteEntry) {
+      this.log("RREQ already handled");
+      return;
+    }
+
     // Check if we have an existing route to the destination
     const entry = this.routingTable.find(entry => {
+      this.log('Checking routing table entry', entry, entry.destination, pack.destination, entry.isValid);
       return (
         entry.destination === pack.destination &&
-        entry.isValid &&
-        isSeqNumNewerOrEqual(entry.sequenceNumber, pack.destinationSequenceNumber)
+        entry.isValid
+        // TODO: Check if Sequence Number is newer
+        // isSeqNumNewerOrEqual(entry.sequenceNumber, pack.destinationSequenceNumber)
       );
     });
     if (entry) {
@@ -171,7 +198,7 @@ export default class Router {
     // Create reverse route entry
     const reverseEntry: ReverseRoutingTableEntry = {
       destination: pack.destination,
-      source: pack.source,
+      source: pack.originatorAddress,
       precusor: pack.source,
       rreqId: pack.rreqId,
       metric: pack.hopCount
@@ -193,8 +220,14 @@ export default class Router {
 
     // Get reverse table entry
     const reverseEntry = this.reverseRoutingTable.reduce<ReverseRoutingTableEntry | null>((last, entry) => {
+      this.log(
+        'Checking reverse table entry',
+        entry,
+        entry.source,
+        pack.originatorAddress,
+      );
       if (
-        entry.destination === pack.destination &&
+        entry.source === pack.destination &&
         entry.rreqId === pack.rreqId &&
         (
           !last ||
@@ -205,6 +238,7 @@ export default class Router {
       }
       return last;
     }, null);
+    this.log("RREP: Reverse Table Entry:", reverseEntry, this.reverseRoutingTable);
 
     // Check if we should use this route for ourself
     const tableEntry = this.routingTable.reduce<RoutingTableEntry | null>((entry, current) => {
@@ -220,6 +254,7 @@ export default class Router {
       }
       return entry;
     }, null);
+    this.log("RREP: Routing Table Entry:", tableEntry);
     if (
       (
         tableEntry &&
@@ -238,22 +273,25 @@ export default class Router {
         // Invalidate old route so we don't use it anymore
         tableEntry.isValid = false;
       }
-
+      
       const newEntry: RoutingTableEntry = {
-        destination: pack.destination,
+        destination: pack.originatorAddress,
         nextHop: pack.source,
         precursors: reverseEntry ? [reverseEntry.precusor] : [],
         metric: pack.hopCount,
         sequenceNumber: pack.sequenceNumber,
         isValid: true
       };
+      this.log("RREP: Newer or better route found, using it to get to", pack.destination, newEntry);
       this.routingTable.push(newEntry);
       this.newRouteEvent.fire(newEntry);
     }
 
     // Check if we have an existing reverse route so we need to send RREP further
-    if (reverseEntry) {
+    if (pack.destination !== this.network.ownAddress && reverseEntry) {
+      this.log('Has reverse entry, relaying package to next hop');
       pack.nextHop = reverseEntry.precusor;
+      pack.source = this.network.ownAddress;
       this.network.sendPackage(pack);
     }
   }
@@ -301,6 +339,25 @@ export default class Router {
       rerr.destinations = errMessages[nextHop];
 
       this.network.sendPackage(rerr);
+    }
+  }
+
+  private handleMSG(pack: MSG) {
+    if (pack.destination === this.network.ownAddress) {
+      this.log("MSG for own address");
+      // TODO: Handle
+      return;
+    } else {
+      this.log("MSG for", pack.destination);
+      const route = this.routingTable.find(entry => (entry.destination === pack.destination && entry.isValid));
+      if (route) {
+        pack.nextHop = route.nextHop;
+        pack.source = this.network.ownAddress;
+        this.network.sendPackage(pack);
+      } else {
+        this.log("No route to", pack.destination);
+        // TODO: Send RERR
+      }
     }
   }
 }

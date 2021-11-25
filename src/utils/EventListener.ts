@@ -56,4 +56,8 @@ export default class EventListener<DataType> {
       }
     });
   }
+
+  public getListenerAmount() {
+    return this._listeners.length;
+  }
 }
