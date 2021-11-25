@@ -1,6 +1,8 @@
 import chalk from "chalk";
 import inquirer from "inquirer";
 import Communication from "./Communication";
+import Network from "./Network";
+import { NetworkAddress } from "./networkPackages/utils/NetworkPackage";
 import { wait } from "./utils";
 
 export type CommandFunc = (...args: string[]) => Promise<boolean>;
@@ -12,6 +14,7 @@ type CommandTable = { [key: string]: Command };
 
 export default class Console {
   communication: Communication;
+  network: Network;
 
   commands: CommandTable = {
     exit: {
@@ -41,18 +44,30 @@ export default class Console {
       }
     },
     send: {
-      description: "Send message over the module",
+      description: "Send raw message over the module",
       handler: async (...args: string[]) => {
         console.log(chalk.green(`Sending message: ${args.join(" ")}`));
         await this.communication.sendMessage(args.join(" "));
         await wait(this.communication.getConnection().PAUSE_LENGTH);
         return true;
       }
+    },
+    msg: {
+      description: "Send a message to a node in the network using multihop routing",
+      handler: async (dest: string, ...args: string[]) => {
+        console.log(chalk.green(`Sending msg: ${args.join(" ")}`));
+        
+        this.network.sendMessage(args.join(" "), Number(dest) as NetworkAddress);
+        
+        await wait(this.communication.getConnection().PAUSE_LENGTH);
+        return true;
+      }
     }
   }
 
-  constructor(communication: Communication) {
+  constructor(communication: Communication, network: Network) {
     this.communication = communication;
+    this.network = network;
   }
 
   async run() {

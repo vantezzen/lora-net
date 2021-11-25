@@ -50,7 +50,7 @@ export default class NetworkPackage {
       length: 8
     },
     {
-      name: "source",
+      name: "source", // Source/Previous Hop Address
       type: "int",
       length: 8
     },

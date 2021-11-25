@@ -34,13 +34,18 @@ import Console from './Console';
   console.log(chalk.green('Communication established'));
 
   // 4. Send network (layer 3)
+  const { Adress: ownAdress } = await inquirer.prompt([{
+    type: 'input',
+    name: 'Adress',
+    message: 'What the address of this module (1-255)?'
+  }]);
   console.log("Setting up network...");
-  const network = new Network(communication);
+  const network = new Network(communication, ownAdress);
   await network.setup();
   console.log(chalk.green('Network setup'));
   
   // 5. Create terminal-like to enable interaction with the module
-  const consoleInstance = new Console(communication);
+  const consoleInstance = new Console(communication, network);
   consoleInstance.run().then(() => {
     console.log(chalk.green('Terminal closed'));
     connection.close();
