@@ -3,7 +3,7 @@ import RREQ from "../../networkPackages/RREQ";
 import { NetworkAddress } from "../../networkPackages/utils/NetworkPackage";
 import Router from "../Router";
 
-export async function sendRREQ(destination: NetworkAddress, router: Router) {
+export async function sendRREQ(destination: NetworkAddress, router: Router): Promise<RREQ> {
   const request = new RREQ();
 
   request.nextHop = Network.BROADCAST_ADDRESS;
@@ -27,5 +27,7 @@ export async function sendRREQ(destination: NetworkAddress, router: Router) {
 
   router.log("Sending RREQ for", destination, "with sequence number", request.sequenceNumber);
 
-  await router.sendWithAck(request);
+  await router.network.sendPackage(request);
+
+  return request;
 }
