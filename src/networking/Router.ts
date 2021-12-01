@@ -82,13 +82,22 @@ export default class Router {
         return;
       }
   
-      await sendRREQ(destination, this);
-
+      const rreq = await sendRREQ(destination, this);
       let hasResolved = false;
+
+      // Try again after a timeout
+      const retryInterval = setInterval(() => {
+        if (!hasResolved) {
+          this.network.sendPackage(rreq);
+        }
+      }, Router.ROUTE_WAIT_TIME / 3);
+
+      // Handle incoming RREP
       const onNewRoute = (entry: RoutingTableEntry) => {
         if (entry.destination === destination) {
           this.newRouteEvent.remove(onNewRoute);
           hasResolved = true;
+          clearInterval(retryInterval);
           resolve(entry);
         }
       };
@@ -99,6 +108,7 @@ export default class Router {
         if (!hasResolved) {
           this.newRouteEvent.remove(onNewRoute);
           this.log("No route to", destination, "found");
+          clearInterval(retryInterval);
           resolve(null);
         }
       }, Router.ROUTE_WAIT_TIME);
