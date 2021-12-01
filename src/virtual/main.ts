@@ -1,7 +1,10 @@
 /**
  * Virtual Network creator to test the code for different network configurations
  */
+import cliProgress from 'cli-progress';
 import Network from "../Network";
+import { NetworkAddress } from '../networkPackages/utils/NetworkPackage';
+import { getPackageValueFromRawString } from '../networkPackages/utils/utils';
 import { wait } from "../utils";
 import { getRoutingTableDiagram, logRoutingTable } from "../utils/Logging";
 import CommunicationMock from "./CommunicationMock";
@@ -68,6 +71,11 @@ type Instance = {
 
 const instances: { [key: number]: Instance } = {};
 
+const multibar = new cliProgress.MultiBar({
+  clearOnComplete: true,
+  format: `{sender} -> {receiver} [{bar}] {value}/{total}`
+}, cliProgress.Presets.shades_grey);
+
 for (const node of networkConfig.nodes) {
   const communication = new CommunicationMock();
 
@@ -75,42 +83,69 @@ for (const node of networkConfig.nodes) {
     // Send message to receiving nodes
     const links = networkConfig.links.filter(link => link.includes(node));
     debug("VNet: Sending message", message, "to", links);
-    for (const link of links) {
-      const target = link[0] === node ? link[1] : link[0];
-      debug('VNet: Sending to', target);
 
-      instances[node].isSending = true;
-      
-      // Check for collisions while sending
-      let collision = false;
+    instances[node].isSending = true;
+    let totalTimeout = 500 * message.length;
+    let tarrgetAddr = getPackageValueFromRawString(message, 8, 16);
+
+    // Nodes that should receive the message
+    let receivingNodes = tarrgetAddr === 255 ? links.map((l) => l[0] === node ? l[1] : l[0]) : [tarrgetAddr];
+
+    const progressbar = multibar.create((totalTimeout / 500) - 1, 0, {
+      sender: node,
+      receiver: tarrgetAddr
+    });
+    
+    // Collisions to addresses
+    let collisions: NetworkAddress[] = [];
+    let collisionChecks = [];
+
+    collisionChecks.push(setInterval(() => progressbar.increment(), 500));
+
+    // Check for collisions while sending
+    for (const receivingNode of receivingNodes) {
       const collisionCheck = setInterval(() => {
 
         for(const link of networkConfig.links) {
 
-          if (link.includes(target) || link.includes(node)) {
-            // Link is in range of the sending or receiving node
+          if (link.includes(tarrgetAddr)) {
+            // Link is in range of the receiving node
             // Check if a node in this link is sending
-            for (const otherNode of link) {
-              if (otherNode !== node && instances[otherNode].isSending) {
-                // This other node is sending too -> Collision
-                collision = true;
-                clearTimeout(collisionCheck);
-                break;
-              }
+
+            const otherNode = link[0] === tarrgetAddr ? link[1] : link[0];
+            
+            if (
+              otherNode !== node &&
+              otherNode !== 255 &&
+              instances[otherNode].isSending
+            ) {
+              // This other node is sending too -> Collision
+              collisions.push(receivingNode);
+              debug('Collision detected', node, tarrgetAddr, otherNode);
+              clearTimeout(collisionCheck);
+              break;
             }
 
           }
         }
 
-      }, 1000);
+      }, 500);
+      collisionChecks.push(collisionCheck);
+    }
 
-      // Pretend sending takes some time
-      await new Promise(r => setTimeout(r, 2000 + 500 * message.length));
-      instances[node].isSending = false;
+    // Pretend sending takes some time
+    await new Promise(r => setTimeout(r, totalTimeout));
+    instances[node].isSending = false;
 
-      if (!collision) {
+    collisionChecks.forEach(c => clearInterval(c));
+    multibar.remove(progressbar);
+
+    for (const receivingNode of receivingNodes) {
+      debug('VNet: Sending to', receivingNode);
+
+      if (!collisions.includes(receivingNode)) {
         // No collision -> Send message
-        await instances[target].communication.receiveMessage(node, message);
+        await instances[receivingNode].communication.receiveMessage(node, message);
       }
     }
   }
@@ -130,14 +165,14 @@ debug("VNet: Sending test messages");
 (async () => {
   for (const message of messages) {
     instances[message.sender].network.sendMessage(`Hello ${message.sender} -> ${message.receiver}`, message.receiver);
-    await wait(30000);
+    await wait(2 * 60 * 1000);
   }
 })();
 
-setInterval(() => {
-  for(const instance of Object.values(instances)) {
-    logRoutingTable(instance.network.router.routingTable, instance.network.ownAddress);
+// setInterval(() => {
+//   for(const instance of Object.values(instances)) {
+//     logRoutingTable(instance.network.router.routingTable, instance.network.ownAddress);
 
-    console.log(instance.network.ownAddress, ":\n", getRoutingTableDiagram(instance.network.router.routingTable, instance.network.ownAddress));
-  }
-}, 10000);
+//     console.log(instance.network.ownAddress, ":\n", getRoutingTableDiagram(instance.network.router.routingTable, instance.network.ownAddress));
+//   }
+// }, 10000);
