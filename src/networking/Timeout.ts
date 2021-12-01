@@ -18,7 +18,7 @@ export default class Timeout {
    * @returns Timeout length
    */
   public getNextTimeout(): number {
-    const length = Math.random() * 1000 * 60;
+    const length = Math.round(Math.random() * 1000 * 60);
     debug('Timing out for', length, 'ms');
     return length;
   }
