@@ -2,6 +2,7 @@ import chalk from "chalk";
 import Communication from "./Communication";
 import ICommunication from "./interfaces/ICommunication";
 import Router from "./networking/Router";
+import Timeout from "./networking/Timeout";
 import MSG from "./networkPackages/MSG";
 import NetworkPackage, { NetworkAddress } from "./networkPackages/utils/NetworkPackage";
 import { withBitOverflow } from "./networkPackages/utils/SequenceNumbers";
@@ -18,7 +19,9 @@ export default class Network {
   private communication: ICommunication;
   private packageListeners = new EventListener<NetworkPackage>();
   private messageListeners = new EventListener<string>();
+
   router: Router;
+  timeout: Timeout;
 
   static BROADCAST_ADDRESS = 255;
 
@@ -28,6 +31,8 @@ export default class Network {
   constructor(communication: ICommunication, ownAddress: NetworkAddress) {
     this.communication = communication;
     this.ownAddress = Number(ownAddress);
+    
+    this.timeout = new Timeout(this);
     this.router = new Router(this);
 
     this.log("Setting up with address", this.ownAddress);

@@ -79,6 +79,9 @@ export async function handleRREP(pack: RREP, router: Router) {
     router.log('Has reverse entry, relaying package to next hop');
     pack.nextHop = reverseEntry.precusor;
     pack.source = router.network.ownAddress;
+    
+    await router.network.timeout.wait();
+      
     await router.sendWithAck(pack);
   }
 }

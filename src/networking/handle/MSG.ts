@@ -16,6 +16,9 @@ export async function handleMSG(pack: MSG, router: Router) {
     if (route) {
       pack.nextHop = route.nextHop;
       pack.source = router.network.ownAddress;
+
+      await router.network.timeout.wait();
+      
       await router.sendWithAck(pack);
     } else {
       router.log("No route to", pack.destination);

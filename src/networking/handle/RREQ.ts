@@ -48,7 +48,9 @@ export async function handleRREQ(pack: RREQ, router: Router) {
   // Broadcast RREP further
   if (pack.ttl > 0) {
     pack.source = router.network.ownAddress;
-
+    
+    await router.network.timeout.wait();
+      
     await router.network.sendPackage(pack);
   }
 }
