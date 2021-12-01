@@ -40,6 +40,7 @@ export default class Router {
 
   currentRreqId = 0;
   network: Network;
+  knownSequenceNumbers: { [addr: NetworkAddress]: number } = {};
 
   static ROUTE_WAIT_TIME = 60000;
 

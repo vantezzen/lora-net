@@ -7,6 +7,8 @@ export async function handleMSG(pack: MSG, router: Router) {
   // We need to wait for ACK sended as the module might be busy otherwise
   await sendACK(pack.source, router);
 
+  router.knownSequenceNumbers[pack.source] = pack.sequenceNumber;
+
   if (pack.destination === router.network.ownAddress) {
     router.log("MSG for own address");
     router.network.fireNewMessageEvent(pack.payload);

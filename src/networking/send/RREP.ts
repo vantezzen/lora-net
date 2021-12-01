@@ -14,6 +14,8 @@ export async function sendRREP(entry: RoutingTableEntry, pack: RREQ, router: Rou
   rrep.hopCount = entry.metric;
 
   rrep.originatorAddress = pack.destination;
+  rrep.sequenceNumber = router.network.sequenceNumber;
+  router.network.increaseSequenceNumber();
   rrep.ttl = pack.hopCount + 1;
 
   router.log("Sending RREP for", pack.destination, "with sequence number", rrep.destinationSequenceNumber);

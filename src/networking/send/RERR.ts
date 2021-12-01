@@ -10,7 +10,7 @@ export async function sendRRER(unavailableNode: NetworkAddress, destination: Net
   rerr.destinations = [
     {
       destination: unavailableNode,
-      sequenceNumber: 0,
+      sequenceNumber: router.knownSequenceNumbers[unavailableNode],
     }
   ];
 

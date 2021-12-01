@@ -8,16 +8,14 @@ export async function sendRREQ(destination: NetworkAddress, router: Router): Pro
 
   request.nextHop = Network.BROADCAST_ADDRESS;
   request.source = router.network.ownAddress;
+  request.sequenceNumber = router.network.sequenceNumber;
   request.rreqId = router.currentRreqId++;
 
   request.destination = destination;
-  const lastKnownDestinationSeqNum = router.routingTable.reduce<number>((lastKnown, entry) => {
-    if (entry.destination === destination) {
-      return entry.sequenceNumber;
-    }
-    return lastKnown;
-  }, 0);
-  request.destinationSequenceNumber = lastKnownDestinationSeqNum;
+  request.destinationSequenceNumber = router.knownSequenceNumbers[destination] || 0;
+  if (!router.knownSequenceNumbers.hasOwnProperty(destination)) {
+    request.flags += 1;
+  }
   
   request.hopCount = 0;
 

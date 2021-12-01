@@ -9,6 +9,9 @@ export async function handleRREQ(pack: RREQ, router: Router) {
   pack.hopCount++;
   pack.ttl--;
 
+  router.knownSequenceNumbers[pack.source] = pack.sequenceNumber;
+  router.knownSequenceNumbers[pack.originatorAddress] = pack.originatorSequence;
+
   if (pack.originatorAddress === router.network.ownAddress) {
     router.log("Ignoring RREQ from myself");
     return;
@@ -48,6 +51,8 @@ export async function handleRREQ(pack: RREQ, router: Router) {
   // Broadcast RREP further
   if (pack.ttl > 0) {
     pack.source = router.network.ownAddress;
+    pack.sequenceNumber = router.network.sequenceNumber;
+    router.network.increaseSequenceNumber();
     
     await router.network.timeout.wait();
       

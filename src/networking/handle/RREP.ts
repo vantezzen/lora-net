@@ -7,6 +7,8 @@ export async function handleRREP(pack: RREP, router: Router) {
   router.log("Received RREP from", pack.source, "for", pack.destination);
   pack.hopCount++;
   pack.ttl--;
+  
+  router.knownSequenceNumbers[pack.source] = pack.sequenceNumber;
 
   // We need to wait for ACK sended as the module might be busy otherwise
   await sendACK(pack.source, router);
