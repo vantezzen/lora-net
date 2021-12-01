@@ -63,15 +63,10 @@ const messages = [
 type Instance = {
   communication: CommunicationMock;
   network: Network;
+  isSending: boolean;
 }
 
 const instances: { [key: number]: Instance } = {};
-
-const messageQueue: { 
-  receiver: number,
-  sender: number,
-  data: string,
-}[] = [];
 
 for (const node of networkConfig.nodes) {
   const communication = new CommunicationMock();
@@ -83,11 +78,40 @@ for (const node of networkConfig.nodes) {
     for (const link of links) {
       const target = link[0] === node ? link[1] : link[0];
       debug('VNet: Sending to', target);
-      messageQueue.push({
-        receiver: target,
-        sender: node,
-        data: message,
-      });
+
+      instances[node].isSending = true;
+      
+      // Check for collisions while sending
+      let collision = false;
+      const collisionCheck = setInterval(() => {
+
+        for(const link of networkConfig.links) {
+
+          if (link.includes(target) || link.includes(node)) {
+            // Link is in range of the sending or receiving node
+            // Check if a node in this link is sending
+            for (const otherNode of link) {
+              if (otherNode !== node && instances[otherNode].isSending) {
+                // This other node is sending too -> Collision
+                collision = true;
+                clearTimeout(collisionCheck);
+                break;
+              }
+            }
+
+          }
+        }
+
+      }, 1000);
+
+      // Pretend sending takes some time
+      await new Promise(r => setTimeout(r, 2000 + 500 * message.length));
+      instances[node].isSending = false;
+
+      if (!collision) {
+        // No collision -> Send message
+        await instances[target].communication.receiveMessage(node, message);
+      }
     }
   }
 
@@ -96,46 +120,21 @@ for (const node of networkConfig.nodes) {
 
   instances[node] = {
     communication,
-    network
+    network,
+    isSending: false,
   };
 }
 debug("VNet: Instances created");
-
-const runMessageQueue = async () => {
-  if (messageQueue.length === 0) {
-    setTimeout(runMessageQueue, 100);
-    return;
-  }
-
-  if (
-    // Random chance to fail sending
-    Math.random() < networkConfig.probabilityFailSending
-  ) {
-    debug("VNet: Simulated Failed sending");
-    runMessageQueue();
-    return;
-  }
-
-  const message = messageQueue.shift();
-  if (message) {
-    debug("VNet: Sending message from queue");
-    await instances[message.receiver].communication.receiveMessage(message.sender, message.data);
-  }
-  runMessageQueue();
-}
-runMessageQueue();
 
 debug("VNet: Sending test messages");
 (async () => {
   for (const message of messages) {
     instances[message.sender].network.sendMessage(`Hello ${message.sender} -> ${message.receiver}`, message.receiver);
-    await wait(3000);
+    await wait(30000);
   }
 })();
 
 setInterval(() => {
-  debug("VNet: Queue length", messageQueue.length);
-
   for(const instance of Object.values(instances)) {
     logRoutingTable(instance.network.router.routingTable, instance.network.ownAddress);
 
