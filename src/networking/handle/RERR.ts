@@ -44,7 +44,7 @@ export async function handleRERR(pack: RERR, router: Router) {
     rerr.source = router.network.ownAddress;
     rerr.destinations = errMessages[nextHop];
 
-    await router.network.timeout.wait();
+    // await router.network.timeout.wait();
     
     router.network.sendPackage(rerr);
   }
