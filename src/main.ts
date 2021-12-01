@@ -1,5 +1,6 @@
 import inquirer from 'inquirer'
 import glob from 'glob'
+import SerialPort from 'serialport';
 import chalk from 'chalk'
 import Connection from './Connection';
 import Communication from './Communication';
@@ -9,7 +10,7 @@ import Console from './Console';
 (async () => {
 
   // 1. Choose port
-  const availablePorts = glob.sync('/dev/tty.*');
+  const availablePorts = (await SerialPort.list()).map(port => port.path);
   const { port } = await inquirer.prompt([{
     type: 'list',
     name: 'port',
