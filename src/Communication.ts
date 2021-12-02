@@ -88,11 +88,13 @@ export default class Communication implements ICommunication {
 
     this.log("Sending message with length", length);
 
+    const sendedListener = this.waitForMessage("SENDED", this.connection.PAUSE_LENGTH * length * 4);
     await this.connection.send("AT+SEND=" + length);
     await wait(this.connection.PAUSE_LENGTH);
 
     await this.connection.send(message);
-    await this.waitForMessage("SENDED", this.connection.PAUSE_LENGTH * length * 4);
+    
+    await sendedListener;
     await wait(this.connection.PAUSE_LENGTH);
   }
 
@@ -109,21 +111,23 @@ export default class Communication implements ICommunication {
    */
   public waitForMessage(message: String | null = null, timeout = 10000): Promise<string> {
     return new Promise((resolve) => {
+      let timeoutItem = setTimeout(() => {
+        this.log("Timed out waiting for " + message);
+        this.connection.removeListener(listener);
+        resolve("Timeout");
+      }, timeout);
+
       const listener = (data: string) => {
-        if (message === null || data.includes(message as string)) {
+        this.log('Received message:', data, 'Seaching for:', message, 'Result:', data.indexOf(message as string) > -1, message === null);
+        if (message === null || data.indexOf(message as string) > -1) {
           this.connection.removeListener(listener);
           clearTimeout(timeoutItem);
           resolve(data);
         }
       };
 
+      this.log('Attaching Listener to wait for', message);
       this.connection.onData(listener);
-
-      let timeoutItem = setTimeout(() => {
-        this.log("Timed out waiting for " + message);
-        this.connection.removeListener(listener);
-        resolve("Timeout");
-      }, timeout);
     });
   }
 

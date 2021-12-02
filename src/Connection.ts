@@ -43,7 +43,9 @@ export default class Connection {
    */
   connect(): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.port = new SerialPort(this.portName, (err) => {
+      this.port = new SerialPort(this.portName, {
+        lock: false,
+      }, (err) => {
         this.isOpen = true;
         if (err) {
           this.log(`Error opening port: ${err}`);
@@ -144,14 +146,31 @@ export default class Connection {
     }
 
     this.log("Closing port");
-    this.port.close((err) => {
+    this.port.flush((err) => {
       if (err) {
-        this.log(`Error closing port: ${err}`);
-      } else {
-        this.log("Port closed");
+        this.log(`Error flushing port: ${err}`);
       }
+      this.log("Port flushed");
+
+      this.port?.drain((err) => {
+
+        if (err) {
+          this.log(`Error draining port: ${err}`);
+        }
+        this.log("Port drained");
+
+        this.port?.close((err) => {
+          if (err) {
+            this.log(`Error closing port: ${err}`);
+          }
+
+          this.isOpen = false;
+          this.log("Port closed");
+        });
+      });
+
     });
-    this.isOpen = false;
+    
   }
 
   /**
