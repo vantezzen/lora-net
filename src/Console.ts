@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import inquirer from "inquirer";
 import Communication from "./Communication";
+import ICommunication from "./interfaces/ICommunication";
 import Network from "./Network";
 import { NetworkAddress } from "./networkPackages/utils/NetworkPackage";
 import { wait } from "./utils";
@@ -14,7 +15,7 @@ export type Command = {
 type CommandTable = { [key: string]: Command };
 
 export default class Console {
-  communication: Communication;
+  communication: ICommunication | Communication;
   network: Network;
 
   commands: CommandTable = {
@@ -39,8 +40,13 @@ export default class Console {
       description: "Send raw AT command to module",
       handler: async (...args: string[]) => {
         console.log(chalk.green(`Sending raw command: ${args.join(" ")}`));
-        await this.communication.getConnection().send(args.join(" "));
-        await wait(this.communication.getConnection().PAUSE_LENGTH);
+
+        if ("getConnection" in this.communication) {
+          await this.communication.getConnection().send(args.join(" "));
+          await wait(this.communication.getConnection().PAUSE_LENGTH);
+        } else {
+          console.log(chalk.red("Not supported. The current communication mode does not support sending raw commands."));
+        }
         return true;
       }
     },
@@ -48,8 +54,14 @@ export default class Console {
       description: "Send raw message over the module",
       handler: async (...args: string[]) => {
         console.log(chalk.green(`Sending message: ${args.join(" ")}`));
+
         await this.communication.sendMessage(args.join(" "));
-        await wait(this.communication.getConnection().PAUSE_LENGTH);
+
+        if ("getConnection" in this.communication) {
+          await wait(this.communication.getConnection().PAUSE_LENGTH);
+        } else {
+          console.log(chalk.gray("Not waiting as current connection does not have pause length."));
+        }
         return true;
       }
     },
@@ -60,7 +72,11 @@ export default class Console {
         
         this.network.sendMessage(args.join(" "), Number(dest) as NetworkAddress);
         
-        await wait(this.communication.getConnection().PAUSE_LENGTH);
+        if ("getConnection" in this.communication) {
+          await wait(this.communication.getConnection().PAUSE_LENGTH);
+        } else {
+          console.log(chalk.gray("Not waiting as current connection does not have pause length."));
+        }
         return true;
       }
     },
@@ -103,7 +119,7 @@ Reverse Routing Table Size: ${this.network.router.reverseRoutingTable.length}
     }
   }
 
-  constructor(communication: Communication, network: Network) {
+  constructor(communication: ICommunication, network: Network) {
     this.communication = communication;
     this.network = network;
   }
