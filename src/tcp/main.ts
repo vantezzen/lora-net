@@ -3,25 +3,36 @@
  */
 import chalk from "chalk";
 import inquirer from "inquirer";
+import yargs from 'yargs/yargs';
+import { hideBin } from 'yargs/helpers';
 import Net from "net";
 import Console from "../Console";
 import Network from "../Network";
 import CommunicationMock from "../virtual/CommunicationMock";
 const debug = require('debug')('lora:TcpNetwork');
 
+const argv = yargs(hideBin(process.argv)).options({
+  host: { type: 'string' },
+  port: { type: 'number' },
+  addr: { type: 'number' },
+}).parseSync();
+
 (async () => {
+  debug('Starting TCP Network');
   const net = new Net.Socket();
 
   // Set up Mock
   const communication = new CommunicationMock();
   // Sending data
   communication.sendMessage = async (message: string) => {
+    debug(`Sending message: ${message}`);
     net.write("P\r\n");
   
     // Pretend sending takes some time
-    let totalTimeout = 500 * message.length;
+    let totalTimeout = 1000 + message.length * 200;
     await new Promise(r => setTimeout(r, totalTimeout));
     
+    debug(`Message sent done: ${message}`);
     net.write(`M${message}\r\n`);
   }
   // Receiving data
@@ -39,22 +50,29 @@ const debug = require('debug')('lora:TcpNetwork');
       }
 
   });
+  net.on('close', function() {
+    console.log(chalk.red(`Verbindung zum Server wurde getrennt`));
+  });
   
   // Set up Network instance
-  const { host, port, Adress: ownAdress } = await inquirer.prompt([
+  const host = argv.host || await inquirer.prompt([
     {
       type: 'input',
       name: 'host',
       message: 'What host should the TCP Client connect to (e.g. 127.0.0.1)?'
-    },
+    }
+  ]);
+  const port = argv.port || await inquirer.prompt([
     {
       type: 'input',
       name: 'port',
       message: 'What port should the TCP Client connect to (e.g. 3000)?'
-    },
+    }
+  ]);
+  const ownAdress = argv.addr || await inquirer.prompt([
     {
       type: 'input',
-      name: 'Adress',
+      name: 'ownAdress',
       message: 'What the address of this module (1-255)?'
     }
   ]);
