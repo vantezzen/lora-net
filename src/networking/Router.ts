@@ -89,6 +89,9 @@ export default class Router {
       // Try again after a timeout
       const retryInterval = setInterval(() => {
         if (!hasResolved) {
+          rreq.originatorSequence = this.network.sequenceNumber;
+          this.network.increaseSequenceNumber();
+          rreq.rreqId = this.currentRreqId++;
           this.network.sendPackage(rreq);
         }
       }, Router.ROUTE_WAIT_TIME / 3);
@@ -126,7 +129,7 @@ export default class Router {
   public sendUsingRoute(pack: NetworkPackage, route: RoutingTableEntry) {
     this.log("Sending", pack.type.toString(), "using route", route);
     pack.nextHop = route.nextHop;
-    this.network.sendPackage(pack);
+    this.sendWithAck(pack);
   }
 
   /**
@@ -178,7 +181,7 @@ export default class Router {
    * @param retries Amount of retries to send the package
    * @returns True if the package was acknowledged, false if the retries were exceeded
    */
-  public async sendWithAck(pack: NetworkPackage, retries = 3): Promise<boolean> {
+  public async sendWithAck(pack: NetworkPackage | MSG, retries = 3): Promise<boolean> {
     let hasAcknowledged = false;
     while(!hasAcknowledged && retries > 0) {
       await this.network.sendPackage(pack);
@@ -187,6 +190,10 @@ export default class Router {
 
       if (!hasAcknowledged) {
         this.log("Retrying sending", pack.type.toString(), "to", pack.nextHop);
+        // if (pack.type === NetworkPackageType.MSG) {
+        //   (pack as MSG).sequenceNumber = this.network.sequenceNumber;
+        //   this.network.increaseSequenceNumber();
+        // }
       }
     }
 

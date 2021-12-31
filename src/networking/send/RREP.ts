@@ -20,5 +20,5 @@ export async function sendRREP(entry: RoutingTableEntry, pack: RREQ, router: Rou
 
   router.log("Sending RREP for", pack.destination, "with sequence number", rrep.destinationSequenceNumber);
 
-  await router.sendWithAck(rrep);
+  await router.network.sendPackage(rrep);
 }

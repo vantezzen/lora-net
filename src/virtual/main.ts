@@ -14,21 +14,13 @@ const debug = require('debug')('lora:VNet');
 // Define nodes in the network and what nodes they can communicate with
 const networkConfig = {
   nodes: [
-    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
+    1, 2, 3, 4
   ],
   links: [
     [1, 2],
-    [1, 6],
     [2, 3],
     [3, 4],
-    [4, 5], 
-    [5, 10],
-    [2, 12],
-    [12, 7],
-    [7, 9],
-    [7, 8],
-    [8, 11],
-    [8, 10],
+    [4, 1]
   ],
   probabilityFailSending: 0,
 };

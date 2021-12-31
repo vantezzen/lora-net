@@ -9,6 +9,8 @@ const debug = require('debug')('lora:CommunicationMock');
  * Layer 2: Communication Mock
  */
 export default class CommunicationMock implements ICommunication {
+  isMock = true;
+  
   private messageListeners = new EventListener<{ sender: number, data: string }>();
 
   /**
