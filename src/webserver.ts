@@ -1,3 +1,6 @@
+/**
+ * Webserver: Backend for the React frontend
+ */
 import express from 'express';
 import http from 'http';
 import { Server, Socket } from 'socket.io';
@@ -22,9 +25,6 @@ app.use(cors());
 app.use(express.static(__dirname + '/../build'));
 
 let allSockets: Socket[] = [];
-const broadcast = (event: string, data: any) => {
-  allSockets.forEach(socket => socket.emit(event, data));
-};
 
 type SocketInfo<T> = {
   [socket: string]: T | undefined;
@@ -42,10 +42,12 @@ io.on('connection', (socket) => {
   console.log('a user connected');
   allSockets.push(socket);
 
+  // Socket requested the list of available ports
   socket.on('getDevices', async (callback: (devices: string[]) => void) => {
     callback((await SerialPort.list()).map(port => port.path));
   });
 
+  // Socket requested to open a connection to a specific communication device
   socket.on('connectTo', async (data: { type: string, device: string, address: number, tcpAddr: string, tcpPort: number }, callback: (success: boolean) => void) => {
     const { type, device, address, tcpAddr, tcpPort } = data;
     if (type === 'bluetooth') {
@@ -160,6 +162,7 @@ io.on('connection', (socket) => {
     callback(true);
   });
 
+  // Socket requested to execute a command line command
   socket.on('console', (input: string) => {
     const log = (...args: string[]) => {
       socket.emit('consoleData', {
@@ -175,6 +178,8 @@ io.on('connection', (socket) => {
     }
   })
 
+  // Socket requested to disconnect from the network
+  // Reset all instances to allow creating a new one on the same socket
   socket.on('disconnectNetwork', async (callback: () => void) => {
     if (connections[socket.id]) {
       await connections[socket.id]!.close();
@@ -190,6 +195,7 @@ io.on('connection', (socket) => {
     callback();
   });
 
+  // Socket disconnected from the network - reset its connections
   socket.on('disconnect', () => {
     console.log('user disconnected');
     if (connections[socket.id]) {

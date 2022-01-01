@@ -45,7 +45,7 @@ import Console from './Console';
   await network.setup();
   console.log(chalk.green('Network setup'));
   
-  // 5. Create terminal-like to enable interaction with the module
+  // 5. Create terminal-like to enable interaction with the module (layer 4)
   const consoleInstance = new Console(communication, network);
   consoleInstance.run().then(() => {
     console.log(chalk.green('Terminal closed'));

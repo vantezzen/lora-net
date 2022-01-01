@@ -14,6 +14,9 @@ type Tables = {
   reverseRoutingTable: ReverseRoutingTableEntry[];
 }
 
+/**
+ * Connection management class for communicating with the backend
+ */
 export default class Connection {
   isSocketConnected = false;
   socket : Socket;
@@ -62,6 +65,14 @@ export default class Connection {
     });
   }
 
+  /**
+   * Request the backend to connect to a specific device
+   * 
+   * @param type Type of connection (bluetooth, tcp, mock)
+   * @param address Address of the own node
+   * @param device Device to connect to
+   * @param data Additional data for the connection
+   */
   connectTo(type: string, address: number, device: string = "", data: { [key: string]: any } = {}) {
     if (this.isConnecting) {
       console.error("Already connecting to a device - continuing anyway");
@@ -79,6 +90,11 @@ export default class Connection {
       this.notifyChange();
     });
   }
+  /**
+   * Request the backend to disconnect from the current connection
+   * 
+   * @returns Promise that resolves when the disconnection is complete
+   */
   disconnect() {
     return new Promise<void>((resolve, reject) => {
       this.socket.emit('disconnectNetwork', () => {
@@ -89,6 +105,11 @@ export default class Connection {
     });
   }
 
+  /**
+   * Send a command line command to the backend
+   * 
+   * @param command Command to execute
+   */
   sendCommand(command: string) {
     this.terminal.add({
       isSender: true,

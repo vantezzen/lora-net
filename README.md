@@ -6,6 +6,8 @@ It provides a simple React dashboard showing the current status of the connectio
 
 This code is paired with a separate, detailed documentation about its functionality, thus this repository only contains minimal info on running the code locally.
 
+![Screenshot](screenshot.png)
+
 ## Setting up
 
 1. Clone this repository

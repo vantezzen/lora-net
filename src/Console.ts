@@ -15,10 +15,17 @@ export type Command = {
 };
 type CommandTable = { [key: string]: Command };
 
+/**
+ * Layer 4: Application Layer (Console)
+ * This class provides a simple command line for interacting with the network.
+ */
 export default class Console {
   communication: ICommunication | Communication;
   network: Network;
 
+  /**
+   * Definition for commands supported by the console
+   */
   commands: CommandTable = {
     exit: {
       description: "Exit the Terminal",
@@ -120,11 +127,24 @@ Reverse Routing Table Size: ${this.network.router.reverseRoutingTable.length}
     }
   }
 
+  /**
+   * Setup the console
+   * 
+   * @param communication 
+   * @param network 
+   */
   constructor(communication: ICommunication, network: Network) {
     this.communication = communication;
     this.network = network;
   }
 
+  /**
+   * Interpret a string command and execute it
+   * 
+   * @param input Input string with arguments
+   * @param log Log function used for output
+   * @returns false if the application should exit, true otherwise
+   */
   async interpretCommand(input: string, log = console.log) {
     let [command, ...args] = input.trim().split(" ");
     command = command.toLowerCase();
@@ -138,6 +158,10 @@ Reverse Routing Table Size: ${this.network.router.reverseRoutingTable.length}
     return true;
   }
 
+  /**
+   * The let command line run in a loop until the user exits
+   * This uses STDIN and STDOUT to get input and output
+   */
   async run() {
     console.log(chalk.green("Opening Terminal - type \"exit\" to exit, \"?\" for help"));
 
