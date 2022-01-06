@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import MSG from "../../networkPackages/MSG";
 import Router from "../Router";
 import sendACK from "../send/ACK";
@@ -11,7 +12,7 @@ export async function handleMSG(pack: MSG, router: Router) {
 
   if (pack.destination === router.network.ownAddress) {
     router.log("MSG for own address");
-    router.network.fireNewMessageEvent(pack.payload);
+    router.network.fireNewMessageEvent(chalk.red(`"${pack.payload}" from Node ${pack.source}`));
     return;
   } else {
     router.log("MSG for", pack.destination);
