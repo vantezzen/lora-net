@@ -12,6 +12,7 @@ export default class CommunicationMock implements ICommunication {
   isMock = true;
   
   private messageListeners = new EventListener<{ sender: number, data: string }>();
+  private sendMessageListeners = new EventListener<{ data: string }>();
 
   /**
    * Internal: Log a message to the console
@@ -54,6 +55,11 @@ export default class CommunicationMock implements ICommunication {
   async receiveMessage(sender: number, data: string) {
     this.log("Received message from " + sender + ": " + data, "informing", this.messageListeners.getListenerAmount(), "listeners");
     this.messageListeners.fire({ sender, data });
+  }
+
+  
+  sendMessageEvent() {
+    return this.sendMessageListeners;
   }
 
 }

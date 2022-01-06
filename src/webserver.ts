@@ -14,6 +14,7 @@ import ICommunication from './interfaces/ICommunication';
 import Communication from './Communication';
 import Network from './Network';
 import Console from './Console';
+import NetworkPackage from './networkPackages/utils/NetworkPackage';
 
 const app = express();
 const server = http.createServer(app);
@@ -142,6 +143,13 @@ io.on('connection', (socket) => {
       tcpConnections[socket.id] = net;
     }
 
+    communications[socket.id]!.sendMessageEvent().add(({ data }) => {
+      socket.emit('consoleData', {
+        layer: 2,
+        data: `Sending: ${data}`
+      });
+    })
+
     console.log("Setting up network...");
     const network = new Network(communications[socket.id]!, address);
     await network.setup();
@@ -151,6 +159,13 @@ io.on('connection', (socket) => {
         data: message
       });
     });
+    network.onPackage((pack: NetworkPackage) => {
+      socket.emit('webconsole', 'Package Received', pack);
+    });
+    network.packageSendListeners.add((pack: NetworkPackage) => {
+      socket.emit('webconsole', 'Package Sending', pack);
+    });
+
     networks[socket.id] = network;
 
     const sendRoutingTable = () => {

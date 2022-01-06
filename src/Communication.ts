@@ -14,6 +14,7 @@ export default class Communication implements ICommunication {
   private connection: Connection;
 
   private messageListeners = new EventListener<{ sender: number, data: string }>();
+  private sendMessageListeners = new EventListener<{ data: string }>();
 
   /**
    * Internal: Log a message to the console
@@ -90,6 +91,8 @@ export default class Communication implements ICommunication {
 
     const sendedListener = this.waitForMessage("SENDED", this.connection.PAUSE_LENGTH * length * 4);
     await this.connection.send("AT+SEND=" + length);
+    this.waitForMessage("OK");
+    this.sendMessageListeners.fire({ data: message });
     await wait(this.connection.PAUSE_LENGTH);
 
     await this.connection.send(message);
@@ -145,5 +148,8 @@ export default class Communication implements ICommunication {
   }
   removeMessageListener(listener: (data: { sender: number, data: string }) => void) {
     this.messageListeners.remove(listener);
+  }
+  sendMessageEvent() {
+    return this.sendMessageListeners;
   }
 }

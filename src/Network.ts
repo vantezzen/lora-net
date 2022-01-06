@@ -19,6 +19,7 @@ export default class Network {
   private communication: ICommunication;
   private packageListeners = new EventListener<NetworkPackage>();
   private messageListeners = new EventListener<string>();
+  packageSendListeners = new EventListener<NetworkPackage>();
 
   router: Router;
   timeout: Timeout;
@@ -77,6 +78,7 @@ export default class Network {
    */
   public async sendPackage(pack: NetworkPackage) {
     this.log("Sending package", pack);
+    this.packageSendListeners.fire(pack);
     await this.communication.sendMessage(pack.toPackage());
   }
 

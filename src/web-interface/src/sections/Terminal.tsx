@@ -63,7 +63,7 @@ export default class Terminal extends React.Component<TerminalProps, TerminalSta
         // @ts-ignore
         title={(<div className="flex items-center gap-3"> <Icons.Terminal size={15} /> Terminal </div>)}
       >
-        <div className="flex flex-col overflow-scroll h-full">
+        <div className="flex flex-col h-full">
             
           {/* Output */}
           <div className="overflow-auto font-mono text-xs flex-grow pb-1" ref={this.outputElement}>

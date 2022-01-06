@@ -42,4 +42,5 @@ export default interface ICommunication {
 
   onMessage(listener: (data: { sender: number, data: string }) => void): void;
   removeMessageListener(listener: (data: { sender: number, data: string }) => void): void;
+  sendMessageEvent(): EventListener<{ data: string }>;
 }

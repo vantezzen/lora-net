@@ -56,6 +56,9 @@ export default class Connection {
         message: `[${LAYERS[layer as keyof typeof LAYERS]}] ${data}`,
       })
     });
+    this.socket.on('webconsole', (...data: any) => {
+      console.log('Log:', ...data);
+    })
     this.socket.on('routingTables', (tables: Tables) => {
       this.tables = tables;
       this.notifyChange();

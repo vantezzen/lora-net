@@ -26,7 +26,7 @@ function App() {
   }, []);
 
   return (
-    <div className="min-w-screen min-h-screen dark text-gray-100 bg-neutral-800">
+    <div className="min-w-screen h-screen dark text-gray-100 bg-neutral-800">
       {!connection.isSocketConnected && (
         <div className="flex justify-center flex-col items-center h-screen">
           <AlertTriangle className="text-center" size={100} />
@@ -51,7 +51,7 @@ function App() {
       </div>
 
       {/* Bottom Row */}
-      <div className="p-5">
+      <div className="p-5" style={{ height: 'calc(50vh - 2.5rem)' }}>
         <Terminal 
           connection={connection}
           terminalStore={terminalStore}
