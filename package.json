@@ -13,7 +13,7 @@
     "tcp-server": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/tcp/server.ts",
     "web:start": "cd src/web-interface && react-scripts start",
     "web:build": "cd src/web-interface && react-scripts build",
-    "web:server": "ts-node src/webserver.ts",
+    "web:server": "DEBUG=lora:* ts-node src/webserver.ts",
     "web:dev:server": "nodemon",
     "web:dev": "concurrently \"npm:web:dev:server\" \"npm:web:start\""
   },

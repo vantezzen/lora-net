@@ -48,7 +48,7 @@ io.on('connection', (socket) => {
   });
 
   // Socket requested to open a connection to a specific communication device
-  socket.on('connectTo', async (data: { type: string, device: string, address: number, tcpAddr: string, tcpPort: number }, callback: (success: boolean) => void) => {
+  socket.on('connectTo', async (data: { type: string, device: string, address: number, tcpAddr: string, tcpPort: number }, callback: (success: boolean, message?: string) => void) => {
     const { type, device, address, tcpAddr, tcpPort } = data;
     if (type === 'bluetooth') {
       connections[socket.id] = new Connection(device);
@@ -58,7 +58,14 @@ io.on('connection', (socket) => {
           data
         });
       });
-      await connections[socket.id]!.connect();
+
+      try {
+        await connections[socket.id]!.connect();
+      } catch (e: any) {
+        console.error(e);
+        callback(false, e.message);
+        return;
+      }
 
       communications[socket.id] = new Communication(connections[socket.id]!);
       await communications[socket.id]!.setup();

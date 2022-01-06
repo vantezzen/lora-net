@@ -83,11 +83,18 @@ export default class Connection {
 
     this.notifyChange();
 
-    this.socket.emit('connectTo', { type, device, address, ...data }, (success: boolean) => {
+    this.socket.emit('connectTo', { type, device, address, ...data }, (success: boolean, message?: string) => {
       this.hasConnection = success;
       this.isConnecting = false;
       this.connectionTime = Date.now();
       this.notifyChange();
+
+      if (message) {
+        this.terminal.add({
+          isSender: false,
+          message: `[31mVerbindungsfehler: ${message}[39m`,
+        })
+      }
     });
   }
   /**
