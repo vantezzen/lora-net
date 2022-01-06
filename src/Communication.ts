@@ -90,14 +90,19 @@ export default class Communication implements ICommunication {
     this.log("Sending message with length", length);
 
     const sendedListener = this.waitForMessage("SENDED", this.connection.PAUSE_LENGTH * length * 4);
+    this.log('sendMessage: Presend');
     await this.connection.send("AT+SEND=" + length);
-    this.waitForMessage("OK");
+    this.log('sendMessage: Wait for OK');
+    const gotOk = await this.waitForMessage("OK");
+    this.log('sendMessage: Got ok, sending message after pause', gotOk);
     this.sendMessageListeners.fire({ data: message });
     await wait(this.connection.PAUSE_LENGTH);
 
     await this.connection.send(message);
+    this.log('sendMessage: Message sent, waiting for SENDED');
     
     await sendedListener;
+    this.log('sendMessage: Sended done');
     await wait(this.connection.PAUSE_LENGTH);
   }
 
