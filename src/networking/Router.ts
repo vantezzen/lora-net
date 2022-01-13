@@ -42,7 +42,7 @@ export default class Router {
   network: Network;
   knownSequenceNumbers: { [addr: NetworkAddress]: number } = {};
 
-  static ROUTE_WAIT_TIME = 60000;
+  static ROUTE_WAIT_TIME = 60000 * 3;
 
   /**
    * Internal: Log an info message to the console

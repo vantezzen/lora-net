@@ -41,7 +41,12 @@ export default class Communication implements ICommunication {
    */
   async setup(): Promise<void> {
     this.log("Setting up");
-    await this.connection.send("AT+CFG=433000000,5,6,12,4,1,0,0,0,0,3000,8,8");
+
+    await this.connection.send("AT+CFG=434920000,5,6,12,4,1,0,0,0,0,3000,8,8");
+    await this.waitForMessage("OK");
+    await wait(this.connection.PAUSE_LENGTH);
+    
+    await this.connection.send("AT+RX");
     await this.waitForMessage("OK");
     await wait(this.connection.PAUSE_LENGTH);
 
