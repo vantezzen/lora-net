@@ -158,7 +158,7 @@ export default class Router {
    * @param timeout Timeout in milliseconds
    * @returns Resolves with "true" if a packet was received, "false" if the timeout was reached
    */
-  waitForAck(sender: NetworkAddress, timeout = 5000): Promise<boolean> {
+  waitForAck(sender: NetworkAddress, timeout = 20000): Promise<boolean> {
     return new Promise((resolve) => {
       const onAck = (ack: ACK) => {
         if (ack.source === sender) {
