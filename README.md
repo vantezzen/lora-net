@@ -1,5 +1,10 @@
 # LoRa Net
 
+> **Note**
+>
+> This code was created as part of a university course about wireless networks.
+> It implements a communication protocol loosely inspired by AODV (RFC 3561) and was used to communicate across the campus using multiple LoRa networking modules.
+
 This project provides a Command Line App and WebApp for building an adhoc, multihop network using LoRa wireless modules.
 
 It provides a simple React dashboard showing the current status of the connection and allowing manual input of AT commands using a terminal.
